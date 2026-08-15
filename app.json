@@ -1,0 +1,52 @@
+{
+  "version": "0.0.1",
+  "id": "app_cb75e3e2f3cf3421",
+  "name": "paper-vault",
+  "display_name": "文研智库",
+  "display_name_en": "Paper Vault",
+  "description": "本地优先的智能文献管理、结构化解析、批注检索与知识库问答应用",
+  "description_en": "Local-first literature management, structured PDF analysis, annotation retrieval and library-wide Q&A",
+  "ui_policy": "aime-native",
+  "services": [
+    {
+      "name": "paper-vault",
+      "description": "本地优先的智能文献管理、结构化解析、批注检索与知识库问答应用",
+      "description_en": "Local-first literature management, structured PDF analysis, annotation retrieval and library-wide Q&A",
+      "type": "command",
+      "command": "cd app/server-go && bash start.sh",
+      "auto_start": true,
+      "upload_to_cdn": [
+        "app/dist/assets"
+      ]
+    }
+  ],
+  "ui_provider": {
+    "points": [
+      {
+        "point": "ui.pages.onboarding",
+        "id": "primary-entry",
+        "priority": 100,
+        "dynamic_ui": true,
+        "iframe": {
+          "uri": "/",
+          "service": "paper-vault"
+        }
+      }
+    ]
+  },
+  "skills": [
+    {
+      "path": "skills/paper-vault-aime-app-cli"
+    }
+  ],
+  "commands": [
+    {
+      "name": "example",
+      "description": "paper-vault 命令",
+      "description_en": "paper-vault command",
+      "type": "script",
+      "script": "commands/example.py",
+      "timeout": 10
+    }
+  ]
+}

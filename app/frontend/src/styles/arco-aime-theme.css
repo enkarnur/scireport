@@ -1,0 +1,187 @@
+/*
+ * Arco 官方 CSS 负责组件结构、surface、间距、状态与暗色模式。
+ * 这里仅保留 Aime Canvas 必需的小白名单：品牌主色、普通 Primary 按钮和浮层尺寸适配。
+ */
+body {
+  /* Arco 以 RGB channel 消费色阶，例如 rgb(var(--primary-6))。 */
+  --primary-1: from var(--aime-color-brand-1) r g b;
+  --primary-2: from var(--aime-color-brand-2) r g b;
+  --primary-3: from var(--aime-color-brand-3) r g b;
+  --primary-4: from var(--aime-color-brand-4) r g b;
+  --primary-5: from var(--aime-color-brand-5) r g b;
+  --primary-6: from var(--aime-color-brand-6) r g b;
+  --primary-7: from var(--aime-color-brand-7) r g b;
+  --primary-8: from var(--aime-color-brand-8) r g b;
+  --primary-9: from var(--aime-color-brand-9) r g b;
+  --primary-10: from var(--aime-color-brand-10) r g b;
+  --link-1: var(--primary-1);
+  --link-2: var(--primary-2);
+  --link-3: var(--primary-3);
+  --link-4: var(--primary-4);
+  --link-5: var(--primary-5);
+  --link-6: var(--primary-6);
+  --link-7: var(--primary-7);
+  --link-8: var(--primary-8);
+  --link-9: var(--primary-9);
+  --link-10: var(--primary-10);
+}
+
+/* 普通 Primary 与宿主保持中性高对比；状态 Primary 继续使用 Arco 状态色。 */
+.arco-btn-primary:not(.arco-btn-disabled):not(.arco-btn-status-warning):not(.arco-btn-status-danger):not(.arco-btn-status-success) {
+  border-color: var(--aime-color-fill-base-default);
+  background-color: var(--aime-color-fill-base-default);
+  box-shadow: none;
+  color: var(--aime-color-text-white);
+}
+
+.arco-btn-primary:not(.arco-btn-disabled):not(.arco-btn-loading):not(.arco-btn-status-warning):not(.arco-btn-status-danger):not(.arco-btn-status-success):hover {
+  border-color: var(--aime-color-gray-7);
+  background-color: var(--aime-color-gray-7);
+  box-shadow: none;
+  color: var(--aime-color-text-white);
+}
+
+.arco-btn-primary:not(.arco-btn-disabled):not(.arco-btn-loading):not(.arco-btn-status-warning):not(.arco-btn-status-danger):not(.arco-btn-status-success):active {
+  border-color: var(--aime-color-gray-8);
+  background-color: var(--aime-color-gray-8);
+  color: var(--aime-color-text-white);
+}
+
+.arco-btn-primary.arco-btn-disabled {
+  border-color: var(--aime-color-gray-3);
+  background-color: var(--aime-color-gray-3);
+  box-shadow: none;
+  color: var(--aime-color-text-white);
+}
+
+body[theme-mode='dark'] .arco-btn-primary:not(.arco-btn-disabled):not(.arco-btn-status-warning):not(.arco-btn-status-danger):not(.arco-btn-status-success),
+body[arco-theme='dark'] .arco-btn-primary:not(.arco-btn-disabled):not(.arco-btn-status-warning):not(.arco-btn-status-danger):not(.arco-btn-status-success) {
+  border-color: var(--aime-color-fill-base-default);
+  background-color: var(--aime-color-fill-base-default);
+  color: var(--aime-color-text-black);
+}
+
+body[theme-mode='dark'] .arco-btn-primary:not(.arco-btn-disabled):not(.arco-btn-loading):not(.arco-btn-status-warning):not(.arco-btn-status-danger):not(.arco-btn-status-success):hover,
+body[arco-theme='dark'] .arco-btn-primary:not(.arco-btn-disabled):not(.arco-btn-loading):not(.arco-btn-status-warning):not(.arco-btn-status-danger):not(.arco-btn-status-success):hover {
+  border-color: var(--aime-color-fill-base-secondary);
+  background-color: var(--aime-color-gray-8);
+}
+
+body[theme-mode='dark'] .arco-btn-primary:not(.arco-btn-disabled):not(.arco-btn-loading):not(.arco-btn-status-warning):not(.arco-btn-status-danger):not(.arco-btn-status-success):active,
+body[arco-theme='dark'] .arco-btn-primary:not(.arco-btn-disabled):not(.arco-btn-loading):not(.arco-btn-status-warning):not(.arco-btn-status-danger):not(.arco-btn-status-success):active {
+  border-color: var(--aime-color-fill-base-default);
+  background-color: var(--aime-color-gray-9);
+}
+
+body[theme-mode='dark'] .arco-btn-primary.arco-btn-disabled,
+body[arco-theme='dark'] .arco-btn-primary.arco-btn-disabled {
+  border-color: var(--aime-color-fill-base-disable);
+  background-color: var(--aime-color-gray-3);
+  color: var(--aime-color-text-base-disable);
+}
+
+/* 只处理 Canvas 内的尺寸、滚动和安全区；颜色与表面继续使用 Arco 官方样式。 */
+.arco-modal {
+  max-width: calc(100vw - 32px);
+  max-height: calc(100dvh - 32px);
+}
+
+@media (max-width: 767px) {
+  .arco-modal-wrapper:has(.arco-modal:not(.arco-modal-simple)) {
+    overflow: hidden;
+    overscroll-behavior: none;
+    text-align: left;
+    white-space: normal;
+  }
+
+  .arco-modal-wrapper.arco-modal-wrapper-align-center:has(.arco-modal:not(.arco-modal-simple))::after {
+    display: none;
+  }
+
+  .arco-modal-wrapper .arco-modal:not(.arco-modal-simple) {
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    width: 100vw !important;
+    max-width: none !important;
+    height: 100dvh;
+    max-height: none;
+    margin: 0;
+    border-radius: 0;
+  }
+
+  .arco-modal-wrapper .arco-modal:not(.arco-modal-simple) .arco-modal-header {
+    flex: 0 0 calc(48px + env(safe-area-inset-top));
+    height: calc(48px + env(safe-area-inset-top));
+    padding:
+      env(safe-area-inset-top)
+      max(var(--aime-space-4), env(safe-area-inset-right))
+      0
+      max(var(--aime-space-4), env(safe-area-inset-left));
+  }
+
+  .arco-modal-wrapper .arco-modal:not(.arco-modal-simple) .arco-modal-title {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .arco-modal-wrapper .arco-modal:not(.arco-modal-simple) .arco-modal-close-icon {
+    top: calc(env(safe-area-inset-top) + 18px);
+    right: max(var(--aime-space-4), env(safe-area-inset-right));
+  }
+
+  .arco-modal-wrapper .arco-modal:not(.arco-modal-simple) .arco-modal-content {
+    flex: 1 1 auto;
+    min-height: 0;
+    padding:
+      var(--aime-space-5)
+      max(var(--aime-space-4), env(safe-area-inset-right))
+      var(--aime-space-5)
+      max(var(--aime-space-4), env(safe-area-inset-left));
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+
+  .arco-modal-wrapper .arco-modal:not(.arco-modal-simple) .arco-modal-footer {
+    display: flex;
+    flex: 0 0 auto;
+    justify-content: flex-end;
+    gap: var(--aime-space-2);
+    padding:
+      var(--aime-space-3)
+      max(var(--aime-space-4), env(safe-area-inset-right))
+      max(var(--aime-space-3), env(safe-area-inset-bottom))
+      max(var(--aime-space-4), env(safe-area-inset-left));
+  }
+
+  .arco-modal-wrapper .arco-modal:not(.arco-modal-simple) .arco-modal-footer > .arco-btn {
+    margin-left: 0;
+  }
+}
+
+/* Notification 保持 Arco 外观，只限制在 Canvas 可用宽度内。 */
+.arco-notification {
+  width: min(300px, calc(100vw - 24px));
+}
+
+.arco-notification-wrapper-topLeft,
+.arco-notification-wrapper-bottomLeft {
+  left: var(--aime-space-3);
+}
+
+.arco-notification-wrapper-topRight,
+.arco-notification-wrapper-bottomRight {
+  right: var(--aime-space-3);
+}
+
+.arco-notification-wrapper-topLeft,
+.arco-notification-wrapper-topRight {
+  top: var(--aime-space-3);
+}
+
+.arco-notification-wrapper-bottomLeft,
+.arco-notification-wrapper-bottomRight {
+  bottom: var(--aime-space-3);
+}

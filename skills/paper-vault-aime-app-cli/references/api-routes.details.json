@@ -1,0 +1,134 @@
+{
+  "schema_version": "1.1",
+  "template_version": "0.0.1",
+  "generated_at": "",
+  "source": "idl-gen",
+  "route_count": 5,
+  "lookup_hint": "先读 api-routes.index.json 定位接口，再在本文件 grep_search 精确搜索 \"METHOD PATH\" 附近上下文，例如 \"POST /api/items\"。",
+  "routes_by_key": {
+    "GET /api/items": {
+      "method": "GET",
+      "path": "/api/items",
+      "summary": "列出所有项目",
+      "public": false,
+      "tags": [
+        "items"
+      ],
+      "response": {
+        "data": [],
+        "total": 0,
+        "backend": "json"
+      }
+    },
+    "POST /api/items": {
+      "method": "POST",
+      "path": "/api/items",
+      "summary": "创建项目",
+      "public": false,
+      "tags": [
+        "items"
+      ],
+      "request_example": {
+        "title": "示例任务",
+        "description": "补充说明（可选）",
+        "status": "todo"
+      },
+      "response": {
+        "data": {
+          "id": "1",
+          "title": "示例任务",
+          "status": "todo"
+        },
+        "backend": "json"
+      },
+      "body_params": [
+        {
+          "name": "title",
+          "type": "string",
+          "required": true,
+          "description": "项目标题，不能为空"
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "description": "项目描述，可选"
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "description": "项目状态，例如 todo/done"
+        }
+      ]
+    },
+    "DELETE /api/items/{id}": {
+      "method": "DELETE",
+      "path": "/api/items/{id}",
+      "summary": "删除项目",
+      "public": false,
+      "tags": [
+        "items"
+      ],
+      "response": {
+        "success": true,
+        "backend": "json"
+      }
+    },
+    "GET /api/items/{id}": {
+      "method": "GET",
+      "path": "/api/items/{id}",
+      "summary": "获取单个项目",
+      "public": false,
+      "tags": [
+        "items"
+      ],
+      "response": {
+        "data": {
+          "id": "1",
+          "title": "示例任务",
+          "status": "todo"
+        },
+        "backend": "json"
+      }
+    },
+    "PUT /api/items/{id}": {
+      "method": "PUT",
+      "path": "/api/items/{id}",
+      "summary": "更新项目（字段可选）",
+      "public": false,
+      "tags": [
+        "items"
+      ],
+      "request_example": {
+        "title": "新标题",
+        "status": "done"
+      },
+      "response": {
+        "data": {
+          "id": "1",
+          "title": "新标题",
+          "status": "done"
+        },
+        "backend": "json"
+      },
+      "body_params": [
+        {
+          "name": "title",
+          "type": "string",
+          "description": "新项目标题，可选"
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "description": "新项目描述，可选"
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "description": "新项目状态，可选，例如 todo/done"
+        }
+      ]
+    }
+  },
+  "refresh_semantics": "generated from app/api IDL; also overwritten by Go service startup",
+  "progressive_loading": true
+}

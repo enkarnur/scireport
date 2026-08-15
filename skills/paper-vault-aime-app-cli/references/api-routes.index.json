@@ -1,0 +1,82 @@
+{
+  "schema_version": "1.1",
+  "template_version": "0.0.1",
+  "generated_at": "",
+  "source": "idl-gen",
+  "route_count": 5,
+  "routes": [
+    {
+      "method": "GET",
+      "path": "/api/items",
+      "summary": "列出所有项目",
+      "tags": [
+        "items"
+      ],
+      "response": {
+        "data": [],
+        "total": 0,
+        "backend": "json"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/items",
+      "summary": "创建项目",
+      "tags": [
+        "items"
+      ],
+      "response": {
+        "data": {
+          "id": "1",
+          "title": "示例任务",
+          "status": "todo"
+        },
+        "backend": "json"
+      }
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/items/{id}",
+      "summary": "删除项目",
+      "tags": [
+        "items"
+      ],
+      "response": {
+        "success": true,
+        "backend": "json"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/items/{id}",
+      "summary": "获取单个项目",
+      "tags": [
+        "items"
+      ],
+      "response": {
+        "data": {
+          "id": "1",
+          "title": "示例任务",
+          "status": "todo"
+        },
+        "backend": "json"
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/api/items/{id}",
+      "summary": "更新项目（字段可选）",
+      "tags": [
+        "items"
+      ],
+      "response": {
+        "data": {
+          "id": "1",
+          "title": "新标题",
+          "status": "done"
+        },
+        "backend": "json"
+      }
+    }
+  ]
+}

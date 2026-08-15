@@ -1,0 +1,282 @@
+body {
+  --aime-color-brand-1: #e9ffe9;
+  --aime-color-brand-2: #cef5ce;
+  --aime-color-brand-3: #a9eba9;
+  --aime-color-brand-4: #83e083;
+  --aime-color-brand-5: #62d662;
+  --aime-color-brand-6: #3dbf3d;
+  --aime-color-brand-7: #33a033;
+  --aime-color-brand-8: #298229;
+  --aime-color-brand-9: #226b22;
+  --aime-color-brand-10: #184c18;
+
+  --aime-color-gray-1: #f5f6f7;
+  --aime-color-gray-2: #e8eaed;
+  --aime-color-gray-3: #c7cdd9;
+  --aime-color-gray-4: #a6adbd;
+  --aime-color-gray-5: #747b8a;
+  --aime-color-gray-6: #5b6475;
+  --aime-color-gray-7: #444c5c;
+  --aime-color-gray-8: #313747;
+  --aime-color-gray-9: #232938;
+  --aime-color-gray-10: #060e1f;
+
+  --aime-color-text-base-highlight: #060e1f;
+  --aime-color-text-base-1: #232938;
+  --aime-color-text-base-2: #444c5c;
+  --aime-color-text-base-3: #747b8a;
+  --aime-color-text-base-disable: #c7cdd9;
+  --aime-color-text-brand-default: #33a033;
+  --aime-color-text-brand-hover: #3dbf3d;
+  --aime-color-text-brand-active: #298229;
+  --aime-color-text-brand-disable: #3dbf3d66;
+  --aime-color-text-white: #ffffff;
+  --aime-color-text-black: #000;
+
+  --aime-color-line-1: #4d65941f;
+  --aime-color-line-2: #4d659433;
+  --aime-color-line-3: #4d659452;
+  --aime-color-line-brand: #298229ad;
+
+  /* 前景填充 Token：用于图标等前景；不要用作页面、容器或控件背景。 */
+  --aime-color-fill-base-default: #060e1f;
+  --aime-color-fill-base-secondary: #444c5c;
+  --aime-color-fill-base-tertiary: #747b8a;
+  --aime-color-fill-base-disable: #c7cdd9;
+  --aime-color-fill-white: #ffffff;
+  --aime-color-fill-black: #000;
+
+  --aime-color-fill-brand-default: #3dbf3d;
+  --aime-color-fill-brand-hover: #62d662;
+  --aime-color-fill-brand-active: #33a033;
+  --aime-color-fill-brand-disable: #3dbf3d52;
+  --aime-color-fill-brand-tag-bg: #3dbf3d2e;
+  --aime-color-fill-brand-bright-bg: #3dbf3d0a;
+
+  /* Surface background tokens: use these for page, card, list item, input and panel backgrounds. */
+  --aime-color-bg-base-default-1: #ffffff;
+  --aime-color-bg-base-secondary-2: #fafbfb;
+  --aime-color-bg-base-tertiary-3: #f1f2f3;
+  --aime-color-bg-overlay-1: #5b64750f;
+  --aime-color-bg-overlay-2: #5b64751a;
+  --aime-color-bg-overlay-3: #5b647524;
+  --aime-color-bg-overlay-4: #5b64752e;
+  --aime-color-bg-menu-8: #f3f3f5;
+  --aime-color-bg-menu: #f3f3f5;
+  --aime-color-bg-5: #f3f4f3;
+  --aime-color-bg-6: #0104010d;
+  --aime-color-bg-7: #ffffff;
+  --aime-color-bg-9: #ffffff;
+  --aime-color-bg-10: #ffffff;
+  --aime-color-bg-11: #eaebee;
+  --aime-color-bg-11-hover: #e4e5e9;
+
+  /* Legacy aliases: keep historical token names working across generated apps/pages. */
+  --aime-color-bg-base-primary: var(--aime-color-bg-base-default-1);
+  --aime-color-fill-1: var(--aime-color-bg-overlay-1);
+  --aime-color-fill-2: var(--aime-color-bg-base-tertiary-3);
+  --aime-color-primary-6: var(--aime-color-status-processing-6);
+
+  --aime-bg-linear-gradient-light:
+    #baf5ba 0%,
+    #cff4ab 66.7%,
+    #f0fac8 100%;
+
+  --aime-color-status-success-1: #f7fff5;
+  --aime-color-status-success-2: #e3fadc;
+  --aime-color-status-success-3: #93d47f;
+  --aime-color-status-success-4: #73c45a;
+  --aime-color-status-success-5: #4fb230;
+  --aime-color-status-success-6: #2a9e06;
+  --aime-color-status-success-7: #1f7505;
+  --aime-color-status-success-8: #1b6504;
+
+  --aime-color-status-warning-1: #fff9eb;
+  --aime-color-status-warning-2: #fff1d6;
+  --aime-color-status-warning-3: #f0cb81;
+  --aime-color-status-warning-4: #edba54;
+  --aime-color-status-warning-5: #f5ac1d;
+  --aime-color-status-warning-6: #db9200;
+  --aime-color-status-warning-7: #936200;
+  --aime-color-status-warning-8: #6e4900;
+
+  --aime-color-status-alert-1: #fff5ed;
+  --aime-color-status-alert-2: #ffeada;
+  --aime-color-status-alert-3: #f7b988;
+  --aime-color-status-alert-4: #f09854;
+  --aime-color-status-alert-5: #f5822c;
+  --aime-color-status-alert-6: #e06100;
+  --aime-color-status-alert-7: #9b4300;
+  --aime-color-status-alert-8: #743200;
+
+  --aime-color-status-error-1: #fff0f1;
+  --aime-color-status-error-2: #ffe5e7;
+  --aime-color-status-error-3: #f7a1a7;
+  --aime-color-status-error-4: #fa6972;
+  --aime-color-status-error-5: #eb545e;
+  --aime-color-status-error-6: #e5404a;
+  --aime-color-status-error-7: #a82f36;
+  --aime-color-status-error-8: #832026;
+
+  --aime-color-status-processing-1: #edf3ff;
+  --aime-color-status-processing-2: #dde8ff;
+  --aime-color-status-processing-3: #91b5fa;
+  --aime-color-status-processing-4: #5a90fa;
+  --aime-color-status-processing-5: #407df5;
+  --aime-color-status-processing-6: #286ffa;
+  --aime-color-status-processing-7: #265ac0;
+  --aime-color-status-processing-8: #1c4390;
+
+  --aime-color-status-stop-1: #f5f6f7;
+  --aime-color-status-stop-2: #e8eaed;
+  --aime-color-status-stop-3: #c7cdd9;
+  --aime-color-status-stop-4: #9198a8;
+  --aime-color-status-stop-5: #747b8a;
+  --aime-color-status-stop-6: #5b6475;
+  --aime-color-status-stop-7: #444c5c;
+  --aime-color-status-stop-8: #313747;
+
+  --aime-color-green-5: #62d662;
+  --aime-color-green-6: #3dbf3d;
+  --aime-color-green-7: #33a033;
+}
+
+body[theme-mode='dark'],
+body[data-theme='dark'],
+body[arco-theme='dark'] {
+  --aime-color-brand-1: #153317;
+  --aime-color-brand-2: #1f5722;
+  --aime-color-brand-3: #246629;
+  --aime-color-brand-4: #2e8033;
+  --aime-color-brand-5: #3aa140;
+  --aime-color-brand-6: #4db853;
+  --aime-color-brand-7: #86d18b;
+  --aime-color-brand-8: #b8e5bb;
+  --aime-color-brand-9: #ceebd0;
+  --aime-color-brand-10: #dff2df;
+
+  --aime-color-gray-1: #1a1b1c;
+  --aime-color-gray-2: #2b2c2e;
+  --aime-color-gray-3: #393a3d;
+  --aime-color-gray-4: #4c4e52;
+  --aime-color-gray-5: #5f6166;
+  --aime-color-gray-6: #80838a;
+  --aime-color-gray-7: #989ca3;
+  --aime-color-gray-8: #b4bac2;
+  --aime-color-gray-9: #d3d8e0;
+  --aime-color-gray-10: #f0f1f5;
+
+  --aime-color-text-base-highlight: #ffffff;
+  --aime-color-text-base-1: #d3d8e0;
+  --aime-color-text-base-2: #b4bac2;
+  --aime-color-text-base-3: #80838a;
+  --aime-color-text-base-disable: #4c4e52;
+  --aime-color-text-brand-default: #3aa140;
+  --aime-color-text-brand-hover: #4db853;
+  --aime-color-text-brand-active: #86d18b;
+  --aime-color-text-brand-disable: #4db85366;
+  --aime-color-text-white: #ffffff;
+  --aime-color-text-black: #000;
+
+  --aime-color-line-1: #e6eaf01a;
+  --aime-color-line-2: #e6eaf029;
+  --aime-color-line-3: #e6eaf03d;
+  --aime-color-line-brand: #83e08366;
+
+  /* 前景填充 Token：用于图标等前景；不要用作页面、容器或控件背景。 */
+  --aime-color-fill-base-default: #d3d8e0;
+  --aime-color-fill-base-secondary: #989ca3;
+  --aime-color-fill-base-tertiary: #5f6166;
+  --aime-color-fill-base-disable: #393a3d;
+  --aime-color-fill-white: #84878f0f;
+  --aime-color-fill-black: #000;
+
+  --aime-color-fill-brand-default: #4db853;
+  --aime-color-fill-brand-hover: #3aa140;
+  --aime-color-fill-brand-active: #86d18b;
+  --aime-color-fill-brand-disable: #4db85352;
+  --aime-color-fill-brand-tag-bg: #4db8531f;
+  --aime-color-fill-brand-bright-bg: #4db85314;
+
+  /* Surface background tokens: use these for page, card, list item, input and panel backgrounds. */
+  --aime-color-bg-base-default-1: #1a1b1c;
+  --aime-color-bg-base-secondary-2: #1b1b1c;
+  --aime-color-bg-base-tertiary-3: #2b2c30;
+  --aime-color-bg-overlay-1: #bebfc214;
+  --aime-color-bg-overlay-2: #bebfc21f;
+  --aime-color-bg-overlay-3: #bebfc229;
+  --aime-color-bg-overlay-4: #bebfc238;
+  --aime-color-bg-menu-8: #242526;
+  --aime-color-bg-menu: #242526;
+  --aime-color-bg-5: #252629;
+  --aime-color-bg-6: #ffffff0d;
+  --aime-color-bg-9: #2e2f33;
+  --aime-color-bg-10: #252629;
+  --aime-color-bg-11: #2b2c2e;
+  --aime-color-bg-11-hover: #393a3d;
+
+  /* Legacy aliases: keep historical token names working across generated apps/pages. */
+  --aime-color-bg-base-primary: var(--aime-color-bg-base-default-1);
+  --aime-color-fill-1: var(--aime-color-bg-overlay-1);
+  --aime-color-fill-2: var(--aime-color-bg-base-tertiary-3);
+  --aime-color-primary-6: var(--aime-color-status-processing-6);
+
+  --aime-bg-linear-gradient-light:
+    #153317 0%,
+    #1f5722 66.7%,
+    #246629 100%;
+
+  --aime-color-status-success-1: #223625;
+  --aime-color-status-success-2: #243826;
+  --aime-color-status-success-3: #254529;
+  --aime-color-status-success-4: #2e8033;
+  --aime-color-status-success-5: #86d18b;
+  --aime-color-status-success-6: #4db853;
+  --aime-color-status-success-7: #3aa140;
+  --aime-color-status-success-8: #b8e5bb;
+
+  --aime-color-status-warning-1: #3d3315;
+  --aime-color-status-warning-2: #3d2e14;
+  --aime-color-status-warning-3: #624516;
+  --aime-color-status-warning-4: #805510;
+  --aime-color-status-warning-5: #dea548;
+  --aime-color-status-warning-6: #d68e1a;
+  --aime-color-status-warning-7: #ab7215;
+  --aime-color-status-warning-8: #f3c57a;
+
+  --aime-color-status-alert-1: #331d12;
+  --aime-color-status-alert-2: #422516;
+  --aime-color-status-alert-3: #68391c;
+  --aime-color-status-alert-4: #8d4214;
+  --aime-color-status-alert-5: #ea8d54;
+  --aime-color-status-alert-6: #e57129;
+  --aime-color-status-alert-7: #b75a21;
+  --aime-color-status-alert-8: #f3a270;
+
+  --aime-color-status-error-1: #3d1d1d;
+  --aime-color-status-error-2: #452022;
+  --aime-color-status-error-3: #6c2e32;
+  --aime-color-status-error-4: #7d262b;
+  --aime-color-status-error-5: #f3727b;
+  --aime-color-status-error-6: #f05660;
+  --aime-color-status-error-7: #c0454d;
+  --aime-color-status-error-8: #e38c91;
+
+  --aime-color-status-processing-1: #1d2a45;
+  --aime-color-status-processing-2: #223152;
+  --aime-color-status-processing-3: #264072;
+  --aime-color-status-processing-4: #284d99;
+  --aime-color-status-processing-5: #689aff;
+  --aime-color-status-processing-6: #4282ff;
+  --aime-color-status-processing-7: #3567cc;
+  --aime-color-status-processing-8: #85aeff;
+
+  --aime-color-status-stop-1: #1c1d1e;
+  --aime-color-status-stop-2: #313133;
+  --aime-color-status-stop-3: #3b3b3d;
+  --aime-color-status-stop-4: #464a53;
+  --aime-color-status-stop-5: #989ca3;
+  --aime-color-status-stop-6: #80838a;
+  --aime-color-status-stop-7: #5f6166;
+  --aime-color-status-stop-8: #b4bac2;
+}

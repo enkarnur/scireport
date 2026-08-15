@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="https://cdn-tos.bytedance.net/codebase/agent_site/favicon-html.svg" />
+    <title>Aime AIApp App</title>
+  </head>
+  <body>
+    <div id="root">
+      <style>
+        /* 避免内联样式过长，使用简易的 CSS 保证 loading 居中并支持深浅色模式 */
+        .initial-loading-wrapper {
+          display: flex;
+          align-items: center;
+          height: 100vh;
+          width: 100vw;
+          justify-content: center;
+          background: #ffffff;
+        }
+        @media (prefers-color-scheme: dark) {
+          .initial-loading-wrapper {
+            background: #1a1a1a;
+          }
+        }
+        .dots-loading {
+          display: inline-flex;
+          gap: 0.5em;
+          align-items: center;
+          height: 20px;
+          font-size: 12px;
+          color: #9ca3af; /* text-gray-400 */
+        }
+        .dots-loading svg {
+          display: inline-block;
+          width: 100%;
+          height: 100%;
+        }
+        .dots-loading .dot {
+          width: 9px;
+          height: 9px;
+          opacity: 0;
+          display: flex;
+          align-items: center;
+          animation: bounce 1.4s infinite;
+        }
+        .dots-loading .dot:nth-child(2) {
+          animation-delay: 0.2s;
+        }
+        .dots-loading .dot:nth-child(3) {
+          animation-delay: 0.4s;
+        }
+        @keyframes bounce {
+          0%, 100% { opacity: 0; transform: translateY(0); }
+          50% { opacity: 1; transform: translateY(-4px); }
+        }
+      </style>
+      <div class="initial-loading-wrapper">
+        <div class="dots-loading">
+          <div class="dot"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10" /></svg></div>
+          <div class="dot"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10" /></svg></div>
+          <div class="dot"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10" /></svg></div>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

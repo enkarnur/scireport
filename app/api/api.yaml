@@ -1,0 +1,84 @@
+# AIME App 接口协议（IDL）— 唯一真相源
+#
+# 这是本应用「先写协议、再并行开发」的核心文件。写完本文件后运行：
+#
+#   python3 tools/gen_api.py <plugin-dir>
+#
+# 生成器会秒级产出四端产物（无需 go build / 重启服务）：
+#   1. app/server-go/handler_<resource>.gen.go   —— Register(Route{...}) 注册（勿改）
+#   2. app/server-go/handler_<resource>.go        —— handler 函数体 stub（Agent B 在此填业务逻辑）
+#   3. app/frontend/src/api/client.gen.ts         —— 前端 typed client（Agent A 直接 import 调用）
+#   4. skills/<skill>/api_client.gen.py           —— command/hook 的 typed 封装（Agent C 用）
+#   5. skills/<skill>/references/api-routes.*.json —— CLI/Skill 渐进式引用
+#      （服务启动会在其中补充模板内置路由；不必把这些内置路由写回本 IDL）
+#
+# 之后 Agent A/B/C 可完全并行、互不阻塞。
+#
+# ── 注意 ──────────────────────────────────────────────────────────────
+# /api/me、/api/_meta/* 是框架内置路由（handler_me.go / handler_meta.go），
+# 不在本 IDL 管理范围内，也不会生成 typed client。前端已在 auth.ts 内部消费。
+#
+# ── 字段说明 ────────────────────────────────────────────────────────────
+# resources[].name         资源名（kebab/snake 皆可），决定生成文件名与 client 分组
+# resources[].model        可选：资源数据形状，用于生成 TS 类型与 Go model 参考
+# routes[].method          GET/POST/PUT/DELETE/PATCH
+# routes[].path            Go 1.22+ ServeMux 模式，路径参数写 {id}
+# routes[].summary         一句话意图（必填）
+# routes[].public          可选，默认 false（走 JWT 鉴权）；仅健康检查等设 true
+# routes[].tags            可选分组
+# routes[].query           query 参数：{name: {type, required, description}}
+# routes[].body            body 参数：同上
+# routes[].request_example  给 Agent / CLI 可照抄的请求示例
+# routes[].response         响应契约（生成 TS 响应类型 & typed client 默认泛型的唯一来源）
+
+version: "1"
+
+resources:
+  - name: items
+    model:
+      id: string
+      title: string
+      description: string
+      status: string
+      createdAt: string
+      updatedAt: string
+    routes:
+      - method: GET
+        path: /api/items
+        summary: 列出所有项目
+        tags: [items]
+        response: { data: [], total: 0, backend: json }
+
+      - method: POST
+        path: /api/items
+        summary: 创建项目
+        tags: [items]
+        body:
+          title:       { type: string, required: true, description: "项目标题，不能为空" }
+          description: { type: string, description: "项目描述，可选" }
+          status:      { type: string, description: "项目状态，例如 todo/done" }
+        request_example:  { title: "示例任务", description: "补充说明（可选）", status: "todo" }
+        response: { data: { id: "1", title: "示例任务", status: "todo" }, backend: json }
+
+      - method: GET
+        path: /api/items/{id}
+        summary: 获取单个项目
+        tags: [items]
+        response: { data: { id: "1", title: "示例任务", status: "todo" }, backend: json }
+
+      - method: PUT
+        path: /api/items/{id}
+        summary: 更新项目（字段可选）
+        tags: [items]
+        body:
+          title:       { type: string, description: "新项目标题，可选" }
+          description: { type: string, description: "新项目描述，可选" }
+          status:      { type: string, description: "新项目状态，可选，例如 todo/done" }
+        request_example: { title: "新标题", status: "done" }
+        response: { data: { id: "1", title: "新标题", status: "done" }, backend: json }
+
+      - method: DELETE
+        path: /api/items/{id}
+        summary: 删除项目
+        tags: [items]
+        response: { success: true, backend: json }

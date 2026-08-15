@@ -1,0 +1,7 @@
+{
+  "template_version": "0.0.1",
+  "template_name": "aime-app-devkit-default",
+  "dynamic_ui_proxy_version": 1,
+  "initialized_at": "2026-08-15T02:27:40Z",
+  "readme": "此文件由 init_plugin.py 生成，禁止手动修改。用于识别应用脚手架以启用对应的开发工具链能力。"
+}

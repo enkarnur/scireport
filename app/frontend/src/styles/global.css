@@ -1,0 +1,55 @@
+/* 导入顺序：Aime 颜色 → 尺寸/工程语义 Token */
+@import './css-variables-v2.css';
+@import './css-variables-tokens.css';
+@import './arco-aime-theme.css';
+@import './agent-control.css';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--aime-font-family-base);
+  font-size: var(--aime-font-size-sm);
+  line-height: 20px;
+  color: var(--aime-color-text-base-1);
+  background-color: var(--aime-color-bg-base-default-1);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body[theme-mode='dark'],
+body[data-theme='dark'],
+body[arco-theme='dark'] {
+  color-scheme: dark;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* Arco Design 图标默认尺寸约束 */
+.arco-icon,
+svg.arco-icon {
+  width: 1em;
+  height: 1em;
+  display: inline-block;
+}
+
+/* 恢复 Tailwind preflight 改写后的通用 SVG 行内排版，避免 lucide 等图标在按钮内换行 */
+svg:not([class*="monaco"]) {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* 所有按钮默认 cursor pointer */
+button,
+[role="button"],
+.arco-btn,
+.arco-select-view {
+  cursor: pointer;
+  touch-action: manipulation;
+}

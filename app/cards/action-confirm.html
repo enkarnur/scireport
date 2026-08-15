@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://sf-unpkg-src.bytedance.net/@aime-plugin/browser-sdk@0.1.10/dist/dynamic-ui/index.js"></script>
+    <style>
+      *, *::before, *::after { box-sizing: border-box; }
+      html, body {
+        margin: 0; padding: 0;
+        background: transparent;
+        box-shadow: none !important;
+      }
+      body {
+        color: var(--host-text-primary, var(--aime-color-text-base-1, #232938));
+        font: 400 13px/1.45 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      button { font: inherit; cursor: pointer; }
+      .card-container {
+        width: min(420px, 100%);
+        max-width: 100%;
+        min-width: 0;
+        padding: 12px 14px;
+        border: 1px solid var(--host-border-color, var(--aime-color-line-1, #4d65941a));
+        border-radius: var(--aime-radius-md, 8px);
+        background: var(--host-container-bg, var(--aime-color-bg-base-default-1, #fff));
+        box-shadow: none !important;
+      }
+      .header { display: flex; align-items: flex-start; gap: 8px; }
+      /* 图标颜色：warning=#d67d28；不可逆操作换成 error=#e5404a */
+      .icon { flex: 0 0 18px; width: 18px; height: 18px; margin-top: 1px; color: var(--aime-color-status-warning-6, #d67d28); }
+      .content { flex: 1 1 auto; min-width: 0; }
+      .title {
+        font-size: 13px; font-weight: 600;
+        color: var(--host-text-primary, var(--aime-color-text-base-1, #232938));
+      }
+      .description {
+        font-size: 12px; margin-top: 4px;
+        color: var(--host-text-secondary, var(--aime-color-text-base-3, #747b8a));
+      }
+      .actions { display: flex; gap: 8px; margin-top: 12px; justify-content: flex-end; }
+      .btn {
+        display: inline-flex; align-items: center; justify-content: center;
+        padding: 5px 14px; height: 28px;
+        border-radius: 6px; font-size: 12px; font-weight: 600; line-height: 1.4;
+        transition: background-color 150ms ease, border-color 150ms ease;
+        appearance: none; -webkit-tap-highlight-color: transparent;
+      }
+      .btn:focus-visible { outline: 2px solid var(--aime-color-line-brand, #298229ad); outline-offset: -2px; }
+      .btn:disabled { cursor: not-allowed; opacity: 0.5; }
+      .btn-secondary {
+        border: 1px solid var(--host-border-color, var(--aime-color-line-2, #4d659433));
+        color: var(--host-text-primary, var(--aime-color-text-base-1, #232938));
+        background: var(--host-container-bg, var(--aime-color-bg-base-default-1, #fff));
+      }
+      .btn-secondary:hover { background: var(--aime-color-bg-overlay-1, #5b64750f); }
+      .btn-primary {
+        border: 1px solid transparent;
+        color: var(--aime-color-text-white, #fff);
+        background: var(--aime-color-fill-base-default, #060e1f);
+      }
+      .btn-primary:hover { background: var(--aime-color-gray-7, #444c5c); }
+      .btn-primary:active { background: var(--aime-color-gray-8, #313747); }
+      [data-theme="dark"] .btn-primary { color: var(--aime-color-text-black, #000); background: var(--aime-color-fill-base-default, #d3d8e0); }
+      [data-theme="dark"] .btn-primary:hover { background: var(--aime-color-gray-8, #b4bac2); }
+      @media (max-width: 280px) {
+        .actions { flex-direction: column-reverse; }
+        .btn { width: 100%; justify-content: center; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="card-container">
+      <!-- 图标：warning（三角感叹号）；不可逆操作替换 d 值为 error 图标 -->
+      <div class="header">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+          <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        <div class="content">
+          <div class="title" id="title">{{CONFIRM_TITLE}}</div>
+          <div class="description" id="description">{{CONFIRM_DESCRIPTION}}</div>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn btn-secondary" id="cancel-btn" type="button">
+          <span id="cancel-label">取消</span>
+        </button>
+        <button class="btn btn-primary" id="confirm-btn" type="button">
+          <span id="confirm-label">确认</span>
+        </button>
+      </div>
+    </main>
+    <script>
+      (function () {
+        // ── 发卡前在 Python 中替换占位符，或直接修改此处的 DATA 值 ──
+        var DATA = {
+          // 当 Prompt 的业务指向不清、需要当前 App 的 skills、commands、workflow 或数据时，可加 {{AIME_APP.app_mention}}。
+          // 它只能指代调用本卡片的 App，不能指代 DevKit 正在开发的 App 或 openApp 的目标；仅指向当前页面时再加 {{AIME_APP.route_path}}。
+          confirmPrompt: "{{CONFIRM_PROMPT}}", // 点"确认"后发给 Agent 的指令
+          cancelPrompt:  "{{CANCEL_PROMPT}}",  // 点"取消"后发给 Agent 的指令（留空则静默）
+        };
+
+        var LABELS = {
+          zh: { confirm: "确认", cancel: "取消" },
+          en: { confirm: "Confirm", cancel: "Cancel" },
+        };
+
+        var locale = navigator.language.toLowerCase().startsWith("zh") ? "zh" : "en";
+        var done = false;
+
+        function applyHostRuntime(runtime) {
+          if (!runtime) return;
+          var theme = runtime.theme === "dark" ? "dark" : "light";
+          var root = document.documentElement;
+          root.dataset.theme = theme;
+          root.setAttribute("theme-mode", theme);
+          root.setAttribute("arco-theme", theme);
+          root.style.colorScheme = theme;
+          var hostVars = {
+            "--host-container-bg": runtime.containerBg,
+            "--host-text-primary": runtime.textPrimary,
+            "--host-text-secondary": runtime.textSecondary,
+            "--host-border-color": runtime.borderColor,
+          };
+          Object.keys(hostVars).forEach(function (k) {
+            if (hostVars[k]) root.style.setProperty(k, hostVars[k]);
+          });
+          Object.keys(runtime.cssVars || {}).forEach(function (k) {
+            root.style.setProperty(k, runtime.cssVars[k]);
+          });
+          if (runtime.containerBg) document.body.style.background = runtime.containerBg;
+          if (runtime.textPrimary) document.body.style.color = runtime.textPrimary;
+          if (runtime.locale) {
+            locale = runtime.locale.toLowerCase().startsWith("zh") ? "zh" : "en";
+            document.getElementById("confirm-label").textContent = LABELS[locale].confirm;
+            document.getElementById("cancel-label").textContent = LABELS[locale].cancel;
+            root.lang = locale === "zh" ? "zh-CN" : "en";
+          }
+        }
+
+        window.addEventListener("message", function (event) {
+          var d = event.data;
+          if (event.source === window.parent && d && d.method === "__host_runtime_info__" && d.params) {
+            applyHostRuntime(d.params.runtime);
+          }
+        });
+        if (window.__aime__ && window.__aime__.getContext) {
+          window.__aime__.getContext().then(function (ctx) {
+            applyHostRuntime(ctx.runtime);
+          }).catch(function () {});
+        }
+
+        function setDone() {
+          done = true;
+          document.getElementById("confirm-btn").disabled = true;
+          document.getElementById("cancel-btn").disabled = true;
+        }
+
+        document.getElementById("confirm-btn").addEventListener("click", function () {
+          if (done || !window.__aime__) return;
+          setDone();
+          window.__aime__.sendPrompt(DATA.confirmPrompt);
+        });
+
+        document.getElementById("cancel-btn").addEventListener("click", function () {
+          if (done || !window.__aime__) return;
+          setDone();
+          var p = DATA.cancelPrompt.trim();
+          if (p) window.__aime__.sendPrompt(p);
+        });
+      })();
+    </script>
+  </body>
+</html>

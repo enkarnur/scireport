@@ -1,0 +1,76 @@
+/*
+ * V2 尺寸系统 & 工程语义 Token
+ * ============================================================================
+ * 修复「只有颜色被 Token 化，圆角/间距/阴影/字体全是硬编码」的问题。
+ * 全部挂在 --aime-* 命名空间下，与 V2 颜色 Token 同源，业务只引用这些 Token，
+ * 不再在组件里散落魔法数字。
+ * arco-aime-theme.css 只桥接 Arco 品牌色并保留普通 Primary 按钮，不在这里或
+ * 主题层全局重写其它 Arco 控件。仅阴影在暗色下单独加强。
+ */
+body {
+  /* ---------- 圆角 ---------- */
+  --aime-radius-none: 0;
+  --aime-radius-xs: 2px;
+  --aime-radius-sm: 4px;
+  --aime-radius-md: 6px;
+  --aime-radius-lg: 8px;
+  --aime-radius-xl: 12px;
+  --aime-radius-2xl: 16px;
+  --aime-radius-full: 9999px;
+
+  /* ---------- 间距（4pt 栅格） ---------- */
+  --aime-space-0: 0;
+  --aime-space-1: 4px;
+  --aime-space-2: 8px;
+  --aime-space-3: 12px;
+  --aime-space-4: 16px;
+  --aime-space-5: 20px;
+  --aime-space-6: 24px;
+  --aime-space-8: 32px;
+  --aime-space-10: 40px;
+  --aime-space-12: 48px;
+
+  /* ---------- 字体 ---------- */
+  --aime-font-size-xs: 12px;
+  --aime-font-size-sm: 13px;
+  --aime-font-size-md: 14px;
+  --aime-font-size-lg: 16px;
+  --aime-font-size-xl: 20px;
+  --aime-font-size-2xl: 24px;
+  --aime-line-tight: 1.2;
+  --aime-line-normal: 1.5;
+  --aime-line-relaxed: 1.7;
+  --aime-font-weight-regular: 400;
+  --aime-font-weight-medium: 500;
+  --aime-font-weight-semibold: 600;
+  --aime-font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --aime-font-family-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+
+  /* ---------- 透明度阶梯（可与任意颜色叠加） ---------- */
+  --aime-alpha-4: 0.04;
+  --aime-alpha-8: 0.08;
+  --aime-alpha-12: 0.12;
+  --aime-alpha-16: 0.16;
+  --aime-alpha-24: 0.24;
+  --aime-alpha-40: 0.4;
+
+  /* ---------- 阴影 ---------- */
+  --aime-shadow-xs: 0 1px 2px rgba(6, 14, 31, 0.06);
+  --aime-shadow-sm: 0 2px 6px rgba(6, 14, 31, 0.08);
+  --aime-shadow-md: 0 6px 16px rgba(6, 14, 31, 0.1);
+  --aime-shadow-lg: 0 12px 32px rgba(6, 14, 31, 0.14);
+
+  /* ---------- 通用交互语义 ---------- */
+  --aime-focus-ring: 0 0 0 3px color-mix(in srgb, var(--aime-color-brand-6) 40%, transparent);
+  --aime-color-on-brand: #ffffff;
+}
+
+/* 暗色下阴影加强，避免弱对比丢失层次 */
+body[theme-mode='dark'],
+body[data-theme='dark'],
+body[arco-theme='dark'] {
+  --aime-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --aime-shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.45);
+  --aime-shadow-md: 0 6px 16px rgba(0, 0, 0, 0.5);
+  --aime-shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.55);
+}

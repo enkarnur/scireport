@@ -1,0 +1,141 @@
+/* ────────────────────────────────────────────────────────────────────
+ * 「Aime 正在控制中」顶部状态条 + 目标元素高亮
+ *
+ * 通过 page-control-runtime.ts 的 `pageControlControlling` 事件驱动。
+ * - .agent-control-banner : 页面顶部固定容器（session 级），呼吸渐变。
+ * - [data-agent-focus]    : 被 dom.* action 操作到的元素，短暂 outline glow。
+ * ──────────────────────────────────────────────────────────────────── */
+
+@keyframes agent-banner-slide-in {
+  from {
+    transform: translate(-50%, -100%);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
+}
+
+@keyframes agent-banner-slide-out {
+  from {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
+  to {
+    transform: translate(-50%, -100%);
+    opacity: 0;
+  }
+}
+
+@keyframes agent-banner-breath {
+  0% {
+    box-shadow:
+      0 6px 20px var(--aime-color-bg-overlay-2),
+      0 0 0 0 color-mix(in srgb, var(--aime-color-brand-6) 40%, transparent);
+    filter: brightness(1);
+  }
+  50% {
+    box-shadow:
+      0 8px 26px var(--aime-color-bg-overlay-2),
+      0 0 0 6px color-mix(in srgb, var(--aime-color-brand-6) 12%, transparent);
+    filter: brightness(1.06);
+  }
+  100% {
+    box-shadow:
+      0 6px 20px var(--aime-color-bg-overlay-2),
+      0 0 0 0 color-mix(in srgb, var(--aime-color-brand-6) 40%, transparent);
+    filter: brightness(1);
+  }
+}
+
+.agent-control-banner {
+  position: fixed;
+  top: 12px;
+  left: 50%;
+  transform: translate(-50%, 0);
+  z-index: 2147483000; /* 保持在几乎所有浮层之上 */
+  pointer-events: none; /* 不拦截交互 */
+  max-width: min(90vw, 640px);
+  padding: 0;
+  will-change: transform, opacity;
+}
+
+.agent-control-banner--visible {
+  animation: agent-banner-slide-in 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.agent-control-banner--leaving {
+  animation: agent-banner-slide-out 260ms cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+.agent-control-banner__inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  color: var(--aime-color-on-brand);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+  white-space: nowrap;
+  background: linear-gradient(
+    90deg,
+    var(--aime-color-brand-5) 0%,
+    var(--aime-color-brand-6) 45%,
+    var(--aime-color-brand-7) 100%
+  );
+  background-size: 200% 100%;
+  animation: agent-banner-breath 2400ms ease-in-out infinite;
+  border: 1px solid color-mix(in srgb, var(--aime-color-brand-4) 50%, transparent);
+  backdrop-filter: blur(6px);
+}
+
+.agent-control-banner__prefix {
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+.agent-control-banner__text {
+  opacity: 0.92;
+  transition: opacity 160ms ease-out;
+  color: var(--aime-color-on-brand);
+}
+
+.agent-control-banner__text::before {
+  content: '·';
+  margin: 0 8px;
+  opacity: 0.55;
+}
+
+.agent-control-banner__text--in {
+  opacity: 1;
+}
+
+.agent-control-banner__text--out {
+  opacity: 0;
+}
+
+/* ─── 被 Agent 操作的元素高亮：outline glow ─── */
+@keyframes agent-focus-pulse {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--aime-color-brand-6) 55%, transparent);
+  }
+  70% {
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--aime-color-brand-6) 0%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--aime-color-brand-6) 0%, transparent);
+  }
+}
+
+[data-agent-focus='true'] {
+  outline: 2px solid var(--aime-color-brand-6) !important;
+  outline-offset: 2px;
+  border-radius: inherit;
+  animation: agent-focus-pulse 1200ms ease-out both;
+  transition: outline-color 200ms ease-out;
+  position: relative;
+  z-index: 1;
+}

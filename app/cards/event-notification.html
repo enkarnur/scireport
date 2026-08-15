@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://sf-unpkg-src.bytedance.net/@aime-plugin/browser-sdk@0.1.10/dist/dynamic-ui/index.js"></script>
+    <style>
+      *, *::before, *::after { box-sizing: border-box; }
+      html, body {
+        margin: 0; padding: 0;
+        background: transparent;
+        box-shadow: none !important;
+      }
+      body {
+        color: var(--host-text-primary, var(--aime-color-text-base-1, #232938));
+        font: 400 13px/1.45 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      button { font: inherit; cursor: pointer; }
+      .card-container {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: min(420px, 100%);
+        max-width: 100%;
+        min-width: 0;
+        padding: 10px 12px;
+        border: 1px solid var(--host-border-color, var(--aime-color-line-1, #4d65941a));
+        border-radius: var(--aime-radius-md, 8px);
+        background: var(--host-container-bg, var(--aime-color-bg-base-default-1, #fff));
+        box-shadow: none !important;
+      }
+      /* 状态图标颜色：success=#2a9e06 warning=#d67d28 error=#e5404a info=brand */
+      .icon { flex: 0 0 20px; width: 20px; height: 20px; color: var(--aime-color-status-success-6, #2a9e06); }
+      .content { flex: 1 1 auto; min-width: 0; }
+      .title {
+        font-size: 13px; font-weight: 600;
+        color: var(--host-text-primary, var(--aime-color-text-base-1, #232938));
+      }
+      .description {
+        font-size: 12px; margin-top: 2px;
+        color: var(--host-text-secondary, var(--aime-color-text-base-3, #747b8a));
+        overflow: hidden;
+        display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2;
+      }
+      .error { display: none; font-size: 12px; margin-top: 4px; color: var(--aime-color-status-error-6, #e5404a); }
+      .action {
+        flex: 0 0 auto;
+        display: inline-flex; align-items: center; justify-content: center;
+        padding: 5px 10px; height: 28px;
+        border: 1px solid transparent; border-radius: 6px;
+        font-size: 12px; font-weight: 600; line-height: 1.4;
+        color: var(--aime-color-text-white, #fff);
+        background: var(--aime-color-fill-base-default, #060e1f);
+        transition: background-color 150ms ease;
+        appearance: none; -webkit-tap-highlight-color: transparent;
+      }
+      .action:hover { background: var(--aime-color-gray-7, #444c5c); }
+      .action:active { background: var(--aime-color-gray-8, #313747); }
+      .action:focus-visible { outline: 2px solid var(--aime-color-line-brand, #298229ad); outline-offset: -2px; }
+      .action:disabled { cursor: not-allowed; opacity: 0.5; }
+      [data-theme="dark"] .action { color: var(--aime-color-text-black, #000); background: var(--aime-color-fill-base-default, #d3d8e0); }
+      [data-theme="dark"] .action:hover { background: var(--aime-color-gray-8, #b4bac2); }
+      [data-theme="dark"] .action:active { background: var(--aime-color-gray-9, #d3d8e0); }
+      @media (max-width: 280px) {
+        .card-container { flex-wrap: wrap; gap: 6px; padding: 8px 10px; }
+        .action { width: 100%; justify-content: center; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="card-container">
+      <!-- 状态图标：success（✔圆）替换 d 值可换成其他图标 -->
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="m9 12 2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>
+      </svg>
+      <div class="content">
+        <div class="title" id="title">{{EVENT_TITLE}}</div>
+        <div class="description" id="description">{{EVENT_DESCRIPTION}}</div>
+        <div class="error" id="error" role="status"></div>
+      </div>
+      <button class="action" id="action" type="button">
+        <span id="action-label">查看详情</span>
+      </button>
+    </main>
+    <script>
+      (function () {
+        // ── 发卡前在 Python 中替换占位符，或直接修改此处的 DATA 值 ──
+        var DATA = {
+          appId: "{{APP_ID}}",           // 当前 App ID（来自 app.json.id）
+          detailPath: "{{DETAIL_PATH}}", // App 内相对路由，如 "/tasks/123"
+        };
+
+        var LABELS = {
+          zh: { open: "查看详情", failed: "暂时无法打开，请稍后重试" },
+          en: { open: "View detail", failed: "Could not open. Please try again." },
+        };
+
+        var locale = navigator.language.toLowerCase().startsWith("zh") ? "zh" : "en";
+        var opening = false;
+        var errorTimer = null;
+
+        function applyHostRuntime(runtime) {
+          if (!runtime) return;
+          var theme = runtime.theme === "dark" ? "dark" : "light";
+          var root = document.documentElement;
+          root.dataset.theme = theme;
+          root.setAttribute("theme-mode", theme);
+          root.setAttribute("arco-theme", theme);
+          root.style.colorScheme = theme;
+          var hostVars = {
+            "--host-container-bg": runtime.containerBg,
+            "--host-text-primary": runtime.textPrimary,
+            "--host-text-secondary": runtime.textSecondary,
+            "--host-border-color": runtime.borderColor,
+          };
+          Object.keys(hostVars).forEach(function (k) {
+            if (hostVars[k]) root.style.setProperty(k, hostVars[k]);
+          });
+          Object.keys(runtime.cssVars || {}).forEach(function (k) {
+            root.style.setProperty(k, runtime.cssVars[k]);
+          });
+          if (runtime.containerBg) document.body.style.background = runtime.containerBg;
+          if (runtime.textPrimary) document.body.style.color = runtime.textPrimary;
+          if (runtime.locale) {
+            locale = runtime.locale.toLowerCase().startsWith("zh") ? "zh" : "en";
+            document.getElementById("action-label").textContent = LABELS[locale].open;
+            root.lang = locale === "zh" ? "zh-CN" : "en";
+          }
+        }
+
+        window.addEventListener("message", function (event) {
+          var d = event.data;
+          if (event.source === window.parent && d && d.method === "__host_runtime_info__" && d.params) {
+            applyHostRuntime(d.params.runtime);
+          }
+        });
+        if (window.__aime__ && window.__aime__.getContext) {
+          window.__aime__.getContext().then(function (ctx) {
+            applyHostRuntime(ctx.runtime);
+          }).catch(function () {});
+        }
+
+        document.getElementById("action").addEventListener("click", async function () {
+          if (opening) return;
+          var appId = DATA.appId.trim();
+          var path = DATA.detailPath.trim();
+          var validPath = path.charAt(0) === "/" && path.indexOf("//") !== 0;
+          if (!appId || !validPath || !window.__aime__ || !window.__aime__.openApp) {
+            showError();
+            return;
+          }
+          opening = true;
+          this.disabled = true;
+          try {
+            await window.__aime__.openApp({ appId: appId, location: { path: path } });
+          } catch (_) {
+            showError();
+          } finally {
+            opening = false;
+            this.disabled = false;
+          }
+        });
+
+        function showError() {
+          var el = document.getElementById("error");
+          el.textContent = LABELS[locale].failed;
+          el.style.display = "block";
+          if (errorTimer) clearTimeout(errorTimer);
+          errorTimer = setTimeout(function () {
+            el.style.display = "none";
+            errorTimer = null;
+          }, 2500);
+        }
+      })();
+    </script>
+  </body>
+</html>
