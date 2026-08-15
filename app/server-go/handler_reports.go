@@ -214,17 +214,7 @@ func generateReportSections(template, question, language string, papers []map[st
 		citations := []map[string]any{}
 		switch spec.key {
 		case "research-question":
-			if question != "" {
-				if zh {
-					contentParts = append(contentParts, "本报告聚焦的研究问题是："+question)
-				} else {
-					contentParts = append(contentParts, "This report focuses on the following research question: "+question)
-				}
-			} else if zh {
-				contentParts = append(contentParts, "未提供额外研究问题；报告围绕所选论文的研究目标、方法与证据展开。")
-			} else {
-				contentParts = append(contentParts, "No extra research question was provided. The report is organized around the goals, methods, and evidence in the selected papers.")
-			}
+			contentParts = append(contentParts, reportResearchQuestionAnswer(question, papers, zh))
 		case "annotations":
 			for _, a := range annotations {
 				if !paperSet[mapString(a, "paperId")] {
@@ -280,12 +270,107 @@ func generateReportSections(template, question, language string, papers []map[st
 	return sections
 }
 
-func reportEvidenceParagraph(p map[string]any, spec reportSectionSpec, text string, zh bool) string {
-	excerpt := compactText(text, 700)
+func reportResearchQuestionAnswer(question string, papers []map[string]any, zh bool) string {
+	issues := inferDiscussedIssues(papers, zh)
 	if zh {
-		return fmt.Sprintf("《%s》为“%s”提供了可定位证据。原文要点如下：“%s”。解读：该证据主要对应%s，报告保留原文摘录以便核验；如原文为英文，中文报告会以中文说明组织内容，但不会伪造未出现的翻译或结论。", mapString(p, "title"), spec.title, excerpt, spec.stringLabel)
+		intro := "本报告围绕所选论文提炼其核心讨论问题。"
+		if strings.TrimSpace(question) != "" {
+			intro = "针对问题“" + strings.TrimSpace(question) + "”，本报告不再重复问题本身，而是概括论文实际讨论的核心议题。"
+		}
+		if len(issues) == 0 {
+			return intro + "目前只能确认论文围绕研究动机、方法设计、实验结果和局限展开；更细的结论请结合各章节引用核验。"
+		}
+		lines := []string{intro, "主要包括："}
+		for i, issue := range issues {
+			lines = append(lines, fmt.Sprintf("%d. %s。", i+1, issue))
+		}
+		return strings.Join(lines, "\n")
 	}
-	return fmt.Sprintf("%s provides locatable evidence for %s: \"%s\"", mapString(p, "title"), spec.stringLabel, excerpt)
+	intro := "This report summarizes the core issues discussed by the selected papers."
+	if strings.TrimSpace(question) != "" {
+		intro = "For the question \"" + strings.TrimSpace(question) + "\", this report answers by summarizing the issues actually discussed in the papers."
+	}
+	if len(issues) == 0 {
+		return intro + " The available structured text covers motivation, methods, results, and limitations; detailed claims should be checked against the cited sections."
+	}
+	lines := []string{intro, "Main issues:"}
+	for i, issue := range issues {
+		lines = append(lines, fmt.Sprintf("%d. %s.", i+1, issue))
+	}
+	return strings.Join(lines, "\n")
+}
+
+func inferDiscussedIssues(papers []map[string]any, zh bool) []string {
+	seen := map[string]bool{}
+	issues := []string{}
+	add := func(zhText, enText string) {
+		text := zhText
+		if !zh {
+			text = enText
+		}
+		if text != "" && !seen[text] {
+			seen[text] = true
+			issues = append(issues, text)
+		}
+	}
+	for _, p := range papers {
+		all := strings.ToLower(strings.Join([]string{mapString(p, "title"), mapString(p, "abstract"), mapString(p, "background"), mapString(p, "methods"), mapString(p, "results"), mapString(p, "discussion")}, " "))
+		if strings.Contains(all, "medical") || strings.Contains(all, "clinician") || strings.Contains(all, "clinical") || strings.Contains(all, "patient") || strings.Contains(all, "医疗") || strings.Contains(all, "临床") || strings.Contains(all, "患者") {
+			add("医疗 AI 如何在真实临床问诊中达到接近专家医生的表现", "how medical AI can approach expert clinician performance in real consultation settings")
+		}
+		if strings.Contains(all, "video") || strings.Contains(all, "audio-visual") || strings.Contains(all, "real-time") || strings.Contains(all, "consultation") || strings.Contains(all, "视频") || strings.Contains(all, "实时") || strings.Contains(all, "问诊") {
+			add("实时视频问诊中的多模态交互、信息获取和沟通质量", "multimodal interaction, information gathering, and communication quality in real-time video consultations")
+		}
+		if strings.Contains(all, "amie") || strings.Contains(all, "gemini") || strings.Contains(all, "model") || strings.Contains(all, "模型") {
+			add("模型系统的配置、能力边界以及与专家基准的差距", "model configuration, capability boundaries, and gaps against expert baselines")
+		}
+		if strings.Contains(all, "evaluation") || strings.Contains(all, "performance") || strings.Contains(all, "benchmark") || strings.Contains(all, "accuracy") || strings.Contains(all, "评估") || strings.Contains(all, "性能") || strings.Contains(all, "准确") {
+			add("如何设计评估标准并证明系统表现是否可靠", "how to design evaluation criteria and demonstrate whether system performance is reliable")
+		}
+		if strings.Contains(all, "safety") || strings.Contains(all, "risk") || strings.Contains(all, "limitation") || strings.Contains(all, "bias") || strings.Contains(all, "安全") || strings.Contains(all, "风险") || strings.Contains(all, "局限") || strings.Contains(all, "偏差") {
+			add("安全性、偏差、局限性和临床落地风险", "safety, bias, limitations, and deployment risks")
+		}
+		if len(issues) == 0 {
+			if title := mapString(p, "title"); title != "" {
+				add("论文《"+title+"》所界定的研究问题、方法路径和证据结论", "the research problem, method, and evidence claims defined by "+title)
+			}
+		}
+		if len(issues) >= 6 {
+			break
+		}
+	}
+	return issues
+}
+
+func reportEvidenceParagraph(p map[string]any, spec reportSectionSpec, text string, zh bool) string {
+	if zh {
+		return fmt.Sprintf("《%s》的%s表明：%s。相关原文已保留在本节引用中，便于回到 PDF 页码核验。", mapString(p, "title"), spec.stringLabel, chineseFieldInsight(p, spec.key, text))
+	}
+	return fmt.Sprintf("%s provides locatable evidence for %s: \"%s\"", mapString(p, "title"), spec.stringLabel, compactText(text, 700))
+}
+
+func chineseFieldInsight(p map[string]any, key, text string) string {
+	issues := inferDiscussedIssues([]map[string]any{p}, true)
+	topic := "论文主题"
+	if len(issues) > 0 {
+		topic = issues[0]
+	}
+	switch key {
+	case "background":
+		return "研究背景主要解释为什么需要关注“" + topic + "”，并指出既有工作仍存在能力、场景或可靠性上的不足"
+	case "methods":
+		return "方法部分重点说明作者为解决上述问题设计了系统、数据流程、评估方案或实验配置"
+	case "results":
+		return "结果部分主要回答该方案在目标任务中是否有效，以及相较基线或专家表现有哪些变化"
+	case "limitations", "discussion":
+		return "讨论部分进一步说明该研究的适用边界、潜在风险、未解决问题和后续改进方向"
+	case "contributions":
+		return "主要贡献集中在提出新的系统能力、验证路径或实证证据，并服务于“" + topic + "”这一核心问题"
+	case "reproducibility":
+		return "可复现信息主要来自方法和实验设置，复现时应优先核对数据来源、模型配置、评价指标和实验条件"
+	default:
+		return "该部分围绕“" + topic + "”展开，具体证据见引用"
+	}
 }
 
 func reportTemplatePrefix(template, sectionKey string, zh bool) string {

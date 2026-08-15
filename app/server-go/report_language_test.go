@@ -31,12 +31,12 @@ func TestChineseReportLanguageWrapsEnglishEvidenceInChinese(t *testing.T) {
 	}
 	sections := report["sections"].([]any)
 	first := sections[0].(map[string]any)
-	if first["title"] != "研究问题" || !strings.Contains(first["content"].(string), "本报告聚焦") {
-		t.Fatalf("research question section is not Chinese: %#v", first)
+	if first["title"] != "研究问题" || !strings.Contains(first["content"].(string), "不再重复问题本身") || !strings.Contains(first["content"].(string), "主要包括") {
+		t.Fatalf("research question section is not an actual Chinese answer: %#v", first)
 	}
 	methodSection := sections[2].(map[string]any)
 	content := methodSection["content"].(string)
-	if methodSection["title"] != "研究方法" || !strings.Contains(content, "原文要点") || !strings.Contains(content, "解读") {
-		t.Fatalf("method section is not Chinese-wrapped: %#v", methodSection)
+	if methodSection["title"] != "研究方法" || !strings.Contains(content, "方法部分重点说明") || strings.Contains(content, "We use two-stage retrieval") {
+		t.Fatalf("method section is not Chinese-synthesized: %#v", methodSection)
 	}
 }
