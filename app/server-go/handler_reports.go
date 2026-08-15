@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"sort"
 	"strings"
@@ -67,9 +68,7 @@ func reportsCreate(w http.ResponseWriter, r *http.Request) {
 		badRequest(w, err.Error())
 		return
 	}
-	if language == "" {
-		language = "zh-CN"
-	}
+	language = normalizeReportLanguage(language)
 	papers := []map[string]any{}
 	for _, id := range paperIDs {
 		paper, err := store.GetByID(r.Context(), papersCollection, id)
@@ -92,7 +91,7 @@ func reportsCreate(w http.ResponseWriter, r *http.Request) {
 		internalError(w)
 		return
 	}
-	sections := generateReportSections(template, question, papers, annotations)
+	sections := generateReportSections(template, question, language, papers, annotations)
 	record := map[string]any{"title": title, "template": template, "status": "ready", "error": "", "paperIds": paperIDs, "paperCount": len(paperIDs), "researchQuestion": question, "language": language, "sections": sections}
 	created, err := store.Create(r.Context(), reportsCollection, record)
 	if err != nil {
@@ -183,8 +182,28 @@ func publicReport(item map[string]any, detail bool) map[string]any {
 
 type reportSectionSpec struct{ key, title, field, stringLabel string }
 
-func generateReportSections(template, question string, papers []map[string]any, annotations []map[string]any) []any {
-	specs := []reportSectionSpec{{"research-question", "研究问题", "", "研究问题"}, {"background", "研究背景", "background", "研究背景"}, {"methods", "研究方法", "methods", "研究方法"}, {"results", "研究结果", "results", "研究结果"}, {"limitations", "局限与风险", "discussion", "局限与讨论"}, {"contributions", "主要贡献", "results", "贡献证据"}, {"reproducibility", "可复现性", "methods", "复现信息"}, {"discussion", "综合讨论", "discussion", "讨论"}, {"annotations", "研究批注", "", "批注"}}
+func normalizeReportLanguage(language string) string {
+	language = strings.ToLower(strings.TrimSpace(language))
+	if language == "" || strings.HasPrefix(language, "zh") || strings.Contains(language, "中文") || strings.Contains(language, "chinese") {
+		return "zh-CN"
+	}
+	return "en"
+}
+
+func isChineseReport(language string) bool {
+	return strings.HasPrefix(strings.ToLower(strings.TrimSpace(language)), "zh")
+}
+
+func reportSectionSpecs(language string) []reportSectionSpec {
+	if isChineseReport(language) {
+		return []reportSectionSpec{{"research-question", "研究问题", "", "研究问题"}, {"background", "研究背景", "background", "研究背景"}, {"methods", "研究方法", "methods", "研究方法"}, {"results", "研究结果", "results", "研究结果"}, {"limitations", "局限与风险", "discussion", "局限与讨论"}, {"contributions", "主要贡献", "results", "贡献证据"}, {"reproducibility", "可复现性", "methods", "复现信息"}, {"discussion", "综合讨论", "discussion", "讨论"}, {"annotations", "研究批注", "", "批注"}}
+	}
+	return []reportSectionSpec{{"research-question", "Research Question", "", "research question"}, {"background", "Background", "background", "background"}, {"methods", "Methods", "methods", "methods"}, {"results", "Results", "results", "results"}, {"limitations", "Limitations and Risks", "discussion", "limitations and discussion"}, {"contributions", "Key Contributions", "results", "contribution evidence"}, {"reproducibility", "Reproducibility", "methods", "reproducibility information"}, {"discussion", "Synthesis and Discussion", "discussion", "discussion"}, {"annotations", "Research Annotations", "", "annotations"}}
+}
+
+func generateReportSections(template, question, language string, papers []map[string]any, annotations []map[string]any) []any {
+	specs := reportSectionSpecs(language)
+	zh := isChineseReport(language)
 	sections := make([]any, 0, len(specs))
 	paperSet := map[string]bool{}
 	for _, p := range papers {
@@ -196,9 +215,15 @@ func generateReportSections(template, question string, papers []map[string]any, 
 		switch spec.key {
 		case "research-question":
 			if question != "" {
-				contentParts = append(contentParts, question)
-			} else {
+				if zh {
+					contentParts = append(contentParts, "本报告聚焦的研究问题是："+question)
+				} else {
+					contentParts = append(contentParts, "This report focuses on the following research question: "+question)
+				}
+			} else if zh {
 				contentParts = append(contentParts, "未提供额外研究问题；报告围绕所选论文的研究目标、方法与证据展开。")
+			} else {
+				contentParts = append(contentParts, "No extra research question was provided. The report is organized around the goals, methods, and evidence in the selected papers.")
 			}
 		case "annotations":
 			for _, a := range annotations {
@@ -207,39 +232,80 @@ func generateReportSections(template, question string, papers []map[string]any, 
 				}
 				for _, p := range papers {
 					if mapString(p, "id") == mapString(a, "paperId") {
-						contentParts = append(contentParts, "《"+mapString(p, "title")+"》："+mapString(a, "content"))
+						if zh {
+							contentParts = append(contentParts, fmt.Sprintf("《%s》的相关批注：%s", mapString(p, "title"), mapString(a, "content")))
+						} else {
+							contentParts = append(contentParts, fmt.Sprintf("Annotation on %s: %s", mapString(p, "title"), mapString(a, "content")))
+						}
 						citations = append(citations, map[string]any{"paperId": mapString(p, "id"), "paperTitle": mapString(p, "title"), "pageNumber": mapInt(a, "pageNumber"), "section": mapString(a, "section"), "quote": mapString(a, "quote"), "startOffset": mapInt(a, "startOffset"), "endOffset": mapInt(a, "endOffset")})
 						break
 					}
 				}
 			}
 			if len(contentParts) == 0 {
-				contentParts = append(contentParts, "所选论文暂无批注。")
+				if zh {
+					contentParts = append(contentParts, "所选论文暂无批注。")
+				} else {
+					contentParts = append(contentParts, "No annotations are available for the selected papers.")
+				}
 			}
 		default:
 			for _, p := range papers {
 				text := mapString(p, spec.field)
 				if text == "" {
-					contentParts = append(contentParts, "《"+mapString(p, "title")+"》未识别到可用于“"+spec.title+"”的明确原文。")
+					if zh {
+						contentParts = append(contentParts, "《"+mapString(p, "title")+"》未识别到可用于“"+spec.title+"”的明确原文。")
+					} else {
+						contentParts = append(contentParts, mapString(p, "title")+" does not contain clearly identifiable source text for "+spec.title+".")
+					}
 					continue
 				}
-				contentParts = append(contentParts, "《"+mapString(p, "title")+"》："+text)
+				contentParts = append(contentParts, reportEvidenceParagraph(p, spec, text, zh))
 				ev := pageEvidence(p, text)
 				if len(ev) > 0 {
 					citations = append(citations, evidenceMap(ev[0]))
 				}
 			}
 			if spec.key == "reproducibility" {
-				contentParts = append(contentParts, "复现时应以原文中明确给出的数据、方法和实验设置为准；未被结构化文本提及的参数不作推断。")
+				if zh {
+					contentParts = append(contentParts, "复现时应以原文中明确给出的数据、方法和实验设置为准；未被结构化文本提及的参数不作推断。")
+				} else {
+					contentParts = append(contentParts, "Reproduction should rely only on data, methods, and experimental settings explicitly stated in the source text; parameters not found in structured text are not inferred.")
+				}
 			}
 		}
-		prefix := ""
-		if template == "comparison" && spec.key != "research-question" {
-			prefix = "以下按论文逐项对照：\n"
-		} else if template == "evidence-summary" && spec.key != "research-question" {
-			prefix = "以下仅汇总可定位的文献证据：\n"
-		}
+		prefix := reportTemplatePrefix(template, spec.key, zh)
 		sections = append(sections, map[string]any{"key": spec.key, "title": spec.title, "content": prefix + strings.Join(contentParts, "\n\n"), "citations": citations})
 	}
 	return sections
+}
+
+func reportEvidenceParagraph(p map[string]any, spec reportSectionSpec, text string, zh bool) string {
+	excerpt := compactText(text, 700)
+	if zh {
+		return fmt.Sprintf("《%s》为“%s”提供了可定位证据。原文要点如下：“%s”。解读：该证据主要对应%s，报告保留原文摘录以便核验；如原文为英文，中文报告会以中文说明组织内容，但不会伪造未出现的翻译或结论。", mapString(p, "title"), spec.title, excerpt, spec.stringLabel)
+	}
+	return fmt.Sprintf("%s provides locatable evidence for %s: \"%s\"", mapString(p, "title"), spec.stringLabel, excerpt)
+}
+
+func reportTemplatePrefix(template, sectionKey string, zh bool) string {
+	if sectionKey == "research-question" {
+		return ""
+	}
+	if zh {
+		if template == "comparison" {
+			return "以下按论文逐项对照：\n"
+		}
+		if template == "evidence-summary" {
+			return "以下仅汇总可定位的文献证据：\n"
+		}
+		return ""
+	}
+	if template == "comparison" {
+		return "The following compares the selected papers item by item:\n"
+	}
+	if template == "evidence-summary" {
+		return "The following summarizes only locatable evidence from the papers:\n"
+	}
+	return ""
 }
