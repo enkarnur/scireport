@@ -91,8 +91,18 @@ func reportsCreate(w http.ResponseWriter, r *http.Request) {
 		internalError(w)
 		return
 	}
-	sections := generateReportSections(template, question, language, papers, annotations)
-	record := map[string]any{"title": title, "template": template, "status": "ready", "error": "", "paperIds": paperIDs, "paperCount": len(paperIDs), "researchQuestion": question, "language": language, "sections": sections}
+	cfg, err := requireAISettings(r.Context())
+	if err != nil {
+		badRequest(w, err.Error())
+		return
+	}
+	sections, err := aiGenerateReportSections(r.Context(), cfg, template, question, language, papers, annotations)
+	if err != nil {
+		writeJSON(w, http.StatusBadGateway, map[string]any{"error": "AI 报告生成失败：" + err.Error()})
+		return
+	}
+	enrichReportCitations(sections, template, question, language, papers, annotations)
+	record := map[string]any{"title": title, "template": template, "status": "ready", "error": "", "paperIds": paperIDs, "paperCount": len(paperIDs), "researchQuestion": question, "language": language, "sections": sections, "analysisProvider": cfg.Provider, "analysisModel": cfg.Model}
 	created, err := store.Create(r.Context(), reportsCollection, record)
 	if err != nil {
 		internalError(w)
@@ -268,6 +278,37 @@ func generateReportSections(template, question, language string, papers []map[st
 		sections = append(sections, map[string]any{"key": spec.key, "title": spec.title, "content": prefix + strings.Join(contentParts, "\n\n"), "citations": citations})
 	}
 	return sections
+}
+
+func enrichReportCitations(sections []any, template, question, language string, papers []map[string]any, annotations []map[string]any) {
+	fallback := generateReportSections(template, question, language, papers, annotations)
+	fallbackByKey := map[string][]map[string]any{}
+	for _, raw := range fallback {
+		section, ok := raw.(map[string]any)
+		if !ok {
+			continue
+		}
+		citations := []map[string]any{}
+		if arr, ok := section["citations"].([]map[string]any); ok {
+			citations = arr
+		} else if arr, ok := section["citations"].([]any); ok {
+			for _, item := range arr {
+				if m, yes := item.(map[string]any); yes {
+					citations = append(citations, m)
+				}
+			}
+		}
+		fallbackByKey[mapString(section, "key")] = citations
+	}
+	for _, raw := range sections {
+		section, ok := raw.(map[string]any)
+		if !ok {
+			continue
+		}
+		if _, exists := section["citations"]; !exists {
+			section["citations"] = fallbackByKey[mapString(section, "key")]
+		}
+	}
 }
 
 func reportResearchQuestionAnswer(question string, papers []map[string]any, zh bool) string {

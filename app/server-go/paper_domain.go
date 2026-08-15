@@ -26,6 +26,7 @@ const (
 	annotationsCollection = "annotations"
 	qaCollection          = "qa"
 	reportsCollection     = "reports"
+	settingsCollection    = "settings"
 	maxRequestBody        = 16 << 20
 )
 

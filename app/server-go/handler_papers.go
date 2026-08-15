@@ -101,8 +101,18 @@ func papersCreate(w http.ResponseWriter, r *http.Request) {
 		badRequest(w, err.Error())
 		return
 	}
-	structured, sections := structurePaper(title, fullText)
-	item := map[string]any{"title": title, "authors": authors, "year": year, "venue": venue, "doi": doi, "sourceFileName": fileName, "pageCount": pageCount, "fullText": fullText, "pages": pages, "sections": sections, "abstract": structured["abstract"], "background": structured["background"], "methods": structured["methods"], "results": structured["results"], "discussion": structured["discussion"], "processingStatus": "ready", "processingError": ""}
+	cfg, err := requireAISettings(r.Context())
+	if err != nil {
+		badRequest(w, err.Error())
+		return
+	}
+	structured, err := aiAnalyzePaper(r.Context(), cfg, title, fullText)
+	if err != nil {
+		writeJSON(w, http.StatusBadGateway, map[string]any{"error": "AI 文献解析失败：" + err.Error()})
+		return
+	}
+	_, sections := structurePaper(title, fullText)
+	item := map[string]any{"title": title, "authors": authors, "year": year, "venue": venue, "doi": doi, "sourceFileName": fileName, "pageCount": pageCount, "fullText": fullText, "pages": pages, "sections": sections, "abstract": structured["abstract"], "background": structured["background"], "methods": structured["methods"], "results": structured["results"], "discussion": structured["discussion"], "processingStatus": "ready", "processingError": "", "analysisProvider": cfg.Provider, "analysisModel": cfg.Model}
 	created, err := store.Create(r.Context(), papersCollection, item)
 	if err != nil {
 		internalError(w)

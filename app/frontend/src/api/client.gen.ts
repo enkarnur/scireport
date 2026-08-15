@@ -55,6 +55,15 @@ export interface ReportsModel {
   updatedAt: string;
 }
 
+export interface SettingsModel {
+  id: string;
+  provider: string;
+  baseUrl: string;
+  model: string;
+  hasApiKey: boolean;
+  updatedAt: string;
+}
+
 export type AnnotationsListResponse = { data: Array<{ id: string; paperId: string; paperTitle: string; content: string; pageNumber: number; section: string; quote: string; startOffset: number; endOffset: number; color: string; createdAt: string; updatedAt: string }>; total: number; limit: number; offset: number };
 export type AnnotationsCreateResponse = { data: { id: string; paperId: string; content: string; pageNumber: number; section: string; quote: string; startOffset: number; endOffset: number; color: string; createdAt: string; updatedAt: string } };
 export type AnnotationsByAnnotationIdDeleteResponse = { success: boolean; deletedAnnotationId: string };
@@ -69,6 +78,8 @@ export type ReportsListResponse = { data: Array<{ id: string; title: string; tem
 export type ReportsCreateResponse = { data: { id: string; title: string; template: string; status: string; paperIds: Array<string>; researchQuestion: string; language: string; createdAt: string; updatedAt: string } };
 export type ReportsByReportIdGetResponse = { data: { id: string; title: string; template: string; status: string; error: string; paperIds: Array<string>; researchQuestion: string; language: string; sections: Array<{ key: string; title: string; content: string; citations: Array<{ paperId: string; paperTitle: string; pageNumber: number; section: string; quote: string; startOffset: number; endOffset: number }> }>; createdAt: string; updatedAt: string } };
 export type ReportsByReportIdExportCreateResponse = { data: { reportId: string; fileName: string; mimeType: string; encoding: string; contentBase64: string; generatedAt: string } };
+export type SettingsAiListResponse = { data: { provider: string; baseUrl: string; model: string; hasApiKey: boolean; maskedApiKey: string; updatedAt: string } };
+export type SettingsAiUpdateResponse = { data: { provider: string; baseUrl: string; model: string; hasApiKey: boolean; maskedApiKey: string; updatedAt: string } };
 
 async function request<T>(method: string, path: string, body?: unknown, query?: Record<string, unknown>): Promise<T> {
   let url = path;
@@ -196,4 +207,20 @@ export function reportsByReportIdExportCreate<T = ReportsByReportIdExportCreateR
   fileName?: string; /** 可选下载文件名，不含本地路径 */
 }): Promise<T> {
   return request<T>("POST", `/api/reports/${reportId}/export`, body);
+}
+
+/** GET /api/settings/ai — 获取 AI API 配置状态（不返回明文密钥） */
+export function settingsAiList<T = SettingsAiListResponse>(): Promise<T> {
+  return request<T>("GET", '/api/settings/ai', undefined);
+}
+
+/** PUT /api/settings/ai — 保存用户自己的 AI API 配置 */
+export function settingsAiUpdate<T = SettingsAiUpdateResponse>(body: {
+  provider?: string; /** 供应商标识，默认 openai-compatible */
+  baseUrl: string; /** OpenAI 兼容 API Base URL，例如 https://api.openai.com/v1 */
+  model: string; /** 模型名称 */
+  apiKey?: string; /** 用户自己的 API Key；为空则保留原 key */
+  clearApiKey?: boolean; /** 是否清除已保存 API Key */
+}): Promise<T> {
+  return request<T>("PUT", '/api/settings/ai', body);
 }

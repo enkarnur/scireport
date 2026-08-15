@@ -3,7 +3,7 @@
   "template_version": "0.0.1",
   "generated_at": "",
   "source": "idl-gen",
-  "route_count": 14,
+  "route_count": 16,
   "routes": [
     {
       "method": "GET",
@@ -386,6 +386,42 @@
           "encoding": "base64",
           "contentBase64": "UEsDBBQAAAAI...",
           "generatedAt": "2026-08-15T02:35:00Z"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/settings/ai",
+      "summary": "获取 AI API 配置状态（不返回明文密钥）",
+      "tags": [
+        "settings"
+      ],
+      "response": {
+        "data": {
+          "provider": "openai-compatible",
+          "baseUrl": "https://api.openai.com/v1",
+          "model": "gpt-4o-mini",
+          "hasApiKey": false,
+          "maskedApiKey": "",
+          "updatedAt": "2026-08-15T03:00:00Z"
+        }
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/api/settings/ai",
+      "summary": "保存用户自己的 AI API 配置",
+      "tags": [
+        "settings"
+      ],
+      "response": {
+        "data": {
+          "provider": "openai-compatible",
+          "baseUrl": "https://api.openai.com/v1",
+          "model": "gpt-4o-mini",
+          "hasApiKey": true,
+          "maskedApiKey": "sk-…abcd",
+          "updatedAt": "2026-08-15T03:00:00Z"
         }
       }
     }

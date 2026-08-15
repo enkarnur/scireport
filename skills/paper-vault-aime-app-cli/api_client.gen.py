@@ -95,3 +95,15 @@ def reports_by_report_id_export_create(reportId, body=None, query=None) -> dict:
     notify_refresh("reports")
     return result
 
+
+def settings_ai_list(query=None) -> dict:
+    """GET /api/settings/ai — 获取 AI API 配置状态（不返回明文密钥）"""
+    return call_service("/api/settings/ai", method="GET", query=query)
+
+
+def settings_ai_update(body=None, query=None) -> dict:
+    """PUT /api/settings/ai — 保存用户自己的 AI API 配置"""
+    result = call_service("/api/settings/ai", method="PUT", body=body, query=query)
+    notify_refresh("settings")
+    return result
+

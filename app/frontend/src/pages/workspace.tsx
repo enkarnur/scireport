@@ -18,6 +18,8 @@ import {
   reportsByReportIdGet,
   reportsCreate,
   reportsList,
+  settingsAiList,
+  settingsAiUpdate,
   type AnnotationsListResponse,
   type PapersByPaperIdGetResponse,
   type PapersListResponse,
@@ -41,7 +43,7 @@ const messages = {
     reportsTitle: '系统报告', reportsDesc: '使用固定模板组织多篇文献，保留章节与引用定位。', createReport: '生成报告', reportHistory: '历史报告', template: '报告模板', systematic: '系统综述', comparison: '研究对比', evidenceSummary: '证据摘要', researchQuestion: '研究问题（可选）', language: '报告语言', selectPapers: '选择文献', generating: '正在创建报告…', reportCreated: '报告任务已创建', noReports: '暂无报告', paperCount: '{n} 篇文献', viewReport: '查看报告',
     report: '报告', reportLoading: '正在加载报告…', reportFailed: '报告生成失败', reportProcessing: '报告正在生成，可稍后刷新。', refresh: '刷新', exportWord: '导出 Word', exporting: '正在导出…', exportSuccess: 'Word 已开始下载', exportFailed: '导出失败，请重试。', citations: '引用', noSections: '报告章节尚未生成。', status: '状态', createdAt: '创建时间',
     required: '请填写必填项', selectAtLeastOne: '请至少选择一篇文献', error: '加载失败，请重试。', untitled: '未命名文献', unknown: '未知',
-    settingsTitle: '应用设置', settingsDesc: '管理个人连接信息。GitHub Token 只保存在当前浏览器，不会写入代码仓库或后端日志。', githubToken: 'GitHub API Token', githubRepo: '默认 GitHub 仓库', tokenPlaceholder: '粘贴你自己的 GitHub token，例如 ghp_…', repoPlaceholder: 'owner/repo，例如 enkarnur/scireport', tokenSecurity: '出于安全原因，应用不会内置任何 GitHub token。需要上传到 GitHub 时，请在这里输入你自己的 token；保存后仅当前浏览器可用。', saveSettings: '保存设置', clearToken: '清除 Token', settingsSaved: '设置已保存', tokenCleared: 'Token 已清除', tokenStatus: '当前状态', tokenConfigured: '已配置（仅本机浏览器）', tokenMissing: '未配置',
+    settingsTitle: '应用设置', settingsDesc: '管理 AI 模型连接信息。AI API Key 由用户自己输入，保存在应用数据中，不会写入代码仓库或日志。', githubToken: 'AI API Key', githubRepo: 'AI API Base URL', tokenPlaceholder: '粘贴你自己的 AI API Key，例如 sk-…', repoPlaceholder: 'https://api.openai.com/v1', tokenSecurity: '文献解析、文献库问答和系统报告都会调用你配置的 OpenAI 兼容 AI API。应用不内置任何 API Key；没有配置时不会擅自调用模型。', saveSettings: '保存设置', clearToken: '清除 API Key', settingsSaved: '设置已保存', tokenCleared: 'API Key 已清除', tokenStatus: '当前状态', tokenConfigured: '已配置', tokenMissing: '未配置',
   },
   en: {
     app: 'Paper Vault', pdfDomain: 'PDF Papers', interactionDomain: 'Interaction / Reports', library: 'Library', ask: 'Ask Library', reports: 'Reports', settings: 'Settings',
@@ -55,7 +57,7 @@ const messages = {
     reportsTitle: 'System reports', reportsDesc: 'Organize multiple papers with templates while preserving section-level citations.', createReport: 'Generate report', reportHistory: 'Report history', template: 'Template', systematic: 'Systematic review', comparison: 'Study comparison', evidenceSummary: 'Evidence summary', researchQuestion: 'Research question (optional)', language: 'Report language', selectPapers: 'Select papers', generating: 'Creating report…', reportCreated: 'Report task created', noReports: 'No reports yet', paperCount: '{n} papers', viewReport: 'View report',
     report: 'Report', reportLoading: 'Loading report…', reportFailed: 'Report generation failed', reportProcessing: 'The report is still being generated. Refresh later.', refresh: 'Refresh', exportWord: 'Export Word', exporting: 'Exporting…', exportSuccess: 'Word download started', exportFailed: 'Export failed. Try again.', citations: 'Citations', noSections: 'Report sections are not ready yet.', status: 'Status', createdAt: 'Created',
     required: 'Complete required fields', selectAtLeastOne: 'Select at least one paper', error: 'Could not load data. Try again.', untitled: 'Untitled paper', unknown: 'Unknown',
-    settingsTitle: 'App settings', settingsDesc: 'Manage personal connection information. GitHub tokens are kept only in this browser and are never written to the code repository or backend logs.', githubToken: 'GitHub API Token', githubRepo: 'Default GitHub repository', tokenPlaceholder: 'Paste your own GitHub token, for example ghp_…', repoPlaceholder: 'owner/repo, for example enkarnur/scireport', tokenSecurity: 'For security, the app never ships with a built-in GitHub token. Enter your own token here when GitHub upload is needed; after saving, it is only available in this browser.', saveSettings: 'Save settings', clearToken: 'Clear token', settingsSaved: 'Settings saved', tokenCleared: 'Token cleared', tokenStatus: 'Status', tokenConfigured: 'Configured in this browser only', tokenMissing: 'Not configured',
+    settingsTitle: 'App settings', settingsDesc: 'Manage AI model connection settings. The AI API key is entered by the user and stored in app data; it is never written to the code repository or logs.', githubToken: 'AI API Key', githubRepo: 'AI API Base URL', tokenPlaceholder: 'Paste your own AI API key, for example sk-…', repoPlaceholder: 'https://api.openai.com/v1', tokenSecurity: 'Paper parsing, library Q&A, and system reports call the OpenAI-compatible AI API you configure. The app ships with no built-in API key, and it will not call a model until you configure one.', saveSettings: 'Save settings', clearToken: 'Clear API key', settingsSaved: 'Settings saved', tokenCleared: 'API key cleared', tokenStatus: 'Status', tokenConfigured: 'Configured', tokenMissing: 'Not configured',
   },
 };
 
@@ -158,12 +160,16 @@ export function ReportsPage() {
 
 export function SettingsPage() {
   const t = useAimeText(messages);
-  const [token, setToken] = useState(() => localStorage.getItem('paperVault.githubToken') || '');
-  const [repo, setRepo] = useState(() => localStorage.getItem('paperVault.githubRepo') || '');
-  const masked = token ? `${token.slice(0, 4)}…${token.slice(-4)}` : '';
-  const save = () => { if (token.trim()) localStorage.setItem('paperVault.githubToken', token.trim()); else localStorage.removeItem('paperVault.githubToken'); if (repo.trim()) localStorage.setItem('paperVault.githubRepo', repo.trim()); else localStorage.removeItem('paperVault.githubRepo'); showMessage(t.settingsSaved, { type: 'success' }); };
-  const clear = () => { setToken(''); localStorage.removeItem('paperVault.githubToken'); showMessage(t.tokenCleared, { type: 'success' }); };
-  return <AppShell><div className={styles.page} data-testid="settings-page"><header className={styles.pageHeader}><div><h1>{t.settingsTitle}</h1><p>{t.settingsDesc}</p></div></header><div className={styles.privacyNote}><ShieldCheck size={16} /><span>{t.tokenSecurity}</span></div><section className={styles.settingsCard}><div className={styles.settingsStatus}><KeyRound size={18} /><div><strong>{t.tokenStatus}</strong><p>{token ? `${t.tokenConfigured} · ${masked}` : t.tokenMissing}</p></div></div><Form layout="vertical"><Form.Item label={t.githubRepo}><Input value={repo} onChange={setRepo} placeholder={t.repoPlaceholder} /></Form.Item><Form.Item label={t.githubToken}><Input.Password value={token} onChange={setToken} placeholder={t.tokenPlaceholder} visibilityToggle /></Form.Item><div className={styles.rowActions}><Button onClick={clear}>{t.clearToken}</Button><Button type="primary" onClick={save}>{t.saveSettings}</Button></div></Form></section></div></AppShell>;
+  const settingsLoad = useLoad(() => settingsAiList(), [], 'settings');
+  const settings = settingsLoad.data?.data;
+  const [apiKey, setApiKey] = useState('');
+  const [baseUrl, setBaseUrl] = useState('https://api.openai.com/v1');
+  const [model, setModel] = useState('gpt-4o-mini');
+  const [saving, setSaving] = useState(false);
+  useEffect(() => { if (settings) { setBaseUrl(settings.baseUrl || 'https://api.openai.com/v1'); setModel(settings.model || 'gpt-4o-mini'); } }, [settings]);
+  const save = async () => { setSaving(true); try { await settingsAiUpdate({ provider: 'openai-compatible', baseUrl, model, apiKey: apiKey.trim() || undefined }); setApiKey(''); await settingsLoad.reload(); showMessage(t.settingsSaved, { type: 'success' }); } catch (e) { showMessage(errorMessage(e), { type: 'error' }); } finally { setSaving(false); } };
+  const clear = async () => { setSaving(true); try { await settingsAiUpdate({ provider: 'openai-compatible', baseUrl, model, clearApiKey: true }); setApiKey(''); await settingsLoad.reload(); showMessage(t.tokenCleared, { type: 'success' }); } catch (e) { showMessage(errorMessage(e), { type: 'error' }); } finally { setSaving(false); } };
+  return <AppShell><div className={styles.page} data-testid="settings-page"><header className={styles.pageHeader}><div><h1>{t.settingsTitle}</h1><p>{t.settingsDesc}</p></div></header><div className={styles.privacyNote}><ShieldCheck size={16} /><span>{t.tokenSecurity}</span></div>{settingsLoad.loading || settingsLoad.error ? <StateBlock loading={settingsLoad.loading} error={settingsLoad.error} onRetry={settingsLoad.reload} /> : <section className={styles.settingsCard}><div className={styles.settingsStatus}><KeyRound size={18} /><div><strong>{t.tokenStatus}</strong><p>{settings?.hasApiKey ? `${t.tokenConfigured} · ${settings.maskedApiKey}` : t.tokenMissing}</p></div></div><Form layout="vertical"><Form.Item label={t.githubRepo} required><Input value={baseUrl} onChange={setBaseUrl} placeholder={t.repoPlaceholder} /></Form.Item><Form.Item label="Model" required><Input value={model} onChange={setModel} placeholder="gpt-4o-mini" /></Form.Item><Form.Item label={t.githubToken}><Input.Password value={apiKey} onChange={setApiKey} placeholder={t.tokenPlaceholder} visibilityToggle /></Form.Item><div className={styles.rowActions}><Button onClick={clear} loading={saving}>{t.clearToken}</Button><Button type="primary" onClick={save} loading={saving}>{t.saveSettings}</Button></div></Form></section>}</div></AppShell>;
 }
 
 function templateLabel(value: string, t: T) { return value === 'comparison' ? t.comparison : value === 'evidence-summary' ? t.evidenceSummary : t.systematic; }

@@ -1,10 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"sort"
-	"strings"
 )
 
 func qaAskCreate(w http.ResponseWriter, r *http.Request) {
@@ -104,14 +102,21 @@ func qaAskCreate(w http.ResponseWriter, r *http.Request) {
 	}
 	sort.SliceStable(hits, func(i, j int) bool { return hits[i]["score"].(float64) > hits[j]["score"].(float64) })
 	citations := []map[string]any{}
-	quotes := []string{}
-	for index, e := range evidences {
+	for _, e := range evidences {
 		citations = append(citations, evidenceMap(e))
-		quotes = append(quotes, fmt.Sprintf("[%d] %s", index+1, e.Quote))
 	}
 	answer := "未在所选文献中找到与问题足够相关的原文证据。请调整问题关键词或扩大论文范围。"
-	if len(quotes) > 0 {
-		answer = "根据文献库中可核验的原文片段：\n" + strings.Join(quotes, "\n") + "\n以上为提取式回答，仅陈述命中原文，不扩展原文未包含的结论。"
+	if len(evidences) > 0 {
+		cfg, err := requireAISettings(r.Context())
+		if err != nil {
+			badRequest(w, err.Error())
+			return
+		}
+		answer, err = aiAnswerQuestion(r.Context(), cfg, question, evidences)
+		if err != nil {
+			writeJSON(w, http.StatusBadGateway, map[string]any{"error": "AI 问答失败：" + err.Error()})
+			return
+		}
 	}
 	scopeIDs := paperIDs
 	if len(scopeIDs) == 0 {

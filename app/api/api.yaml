@@ -413,3 +413,50 @@ resources:
             encoding: "base64"
             contentBase64: "UEsDBBQAAAAI..."
             generatedAt: "2026-08-15T02:35:00Z"
+
+
+  - name: settings
+    model:
+      id: string
+      provider: string
+      baseUrl: string
+      model: string
+      hasApiKey: boolean
+      updatedAt: string
+    routes:
+      - method: GET
+        path: /api/settings/ai
+        summary: 获取 AI API 配置状态（不返回明文密钥）
+        tags: [settings]
+        response:
+          data:
+            provider: "openai-compatible"
+            baseUrl: "https://api.openai.com/v1"
+            model: "gpt-4o-mini"
+            hasApiKey: false
+            maskedApiKey: ""
+            updatedAt: "2026-08-15T03:00:00Z"
+
+      - method: PUT
+        path: /api/settings/ai
+        summary: 保存用户自己的 AI API 配置
+        tags: [settings]
+        body:
+          provider: { type: string, description: "供应商标识，默认 openai-compatible" }
+          baseUrl: { type: string, required: true, description: "OpenAI 兼容 API Base URL，例如 https://api.openai.com/v1" }
+          model: { type: string, required: true, description: "模型名称" }
+          apiKey: { type: string, description: "用户自己的 API Key；为空则保留原 key" }
+          clearApiKey: { type: boolean, description: "是否清除已保存 API Key" }
+        request_example:
+          provider: "openai-compatible"
+          baseUrl: "https://api.openai.com/v1"
+          model: "gpt-4o-mini"
+          apiKey: ""
+        response:
+          data:
+            provider: "openai-compatible"
+            baseUrl: "https://api.openai.com/v1"
+            model: "gpt-4o-mini"
+            hasApiKey: true
+            maskedApiKey: "sk-…abcd"
+            updatedAt: "2026-08-15T03:00:00Z"

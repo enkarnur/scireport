@@ -8,6 +8,7 @@ import (
 
 func TestChineseReportLanguageWrapsEnglishEvidenceInChinese(t *testing.T) {
 	useTestSQLite(t)
+	setupMockAI(t)
 	payload := `{"title":"Retrieval Augmented Literature QA","authors":["Researcher"],"year":2026,"sourceFileName":"english.pdf","pageCount":1,"fullText":"Abstract\nThis paper studies retrieval augmented question answering.\nMethods\nWe use two-stage retrieval and reranking.\nResults\nAccuracy improves by ten percent.\nDiscussion\nThe experiment is limited by data scale.","pages":[{"pageNumber":1,"text":"Abstract\nThis paper studies retrieval augmented question answering.\nMethods\nWe use two-stage retrieval and reranking.\nResults\nAccuracy improves by ten percent.\nDiscussion\nThe experiment is limited by data scale."}]}`
 	req := httptest.NewRequest("POST", "/api/papers", strings.NewReader(payload))
 	rec := httptest.NewRecorder()
@@ -31,12 +32,12 @@ func TestChineseReportLanguageWrapsEnglishEvidenceInChinese(t *testing.T) {
 	}
 	sections := report["sections"].([]any)
 	first := sections[0].(map[string]any)
-	if first["title"] != "研究问题" || !strings.Contains(first["content"].(string), "不再重复问题本身") || !strings.Contains(first["content"].(string), "主要包括") {
-		t.Fatalf("research question section is not an actual Chinese answer: %#v", first)
+	if first["title"] != "研究问题" || !strings.Contains(first["content"].(string), "AI 报告") {
+		t.Fatalf("research question section is not an AI-generated Chinese answer: %#v", first)
 	}
 	methodSection := sections[2].(map[string]any)
 	content := methodSection["content"].(string)
-	if methodSection["title"] != "研究方法" || !strings.Contains(content, "方法部分重点说明") || strings.Contains(content, "We use two-stage retrieval") {
-		t.Fatalf("method section is not Chinese-synthesized: %#v", methodSection)
+	if methodSection["title"] != "研究方法" || !strings.Contains(content, "AI 报告") || strings.Contains(content, "We use two-stage retrieval") {
+		t.Fatalf("method section is not AI-generated Chinese: %#v", methodSection)
 	}
 }

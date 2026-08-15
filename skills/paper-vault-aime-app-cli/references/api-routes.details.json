@@ -3,7 +3,7 @@
   "template_version": "0.0.1",
   "generated_at": "",
   "source": "idl-gen",
-  "route_count": 14,
+  "route_count": 16,
   "lookup_hint": "先读 api-routes.index.json 定位接口，再在本文件 grep_search 精确搜索 \"METHOD PATH\" 附近上下文，例如 \"POST /api/items\"。",
   "routes_by_key": {
     "GET /api/annotations": {
@@ -713,6 +713,79 @@
           "name": "fileName",
           "type": "string",
           "description": "可选下载文件名，不含本地路径"
+        }
+      ]
+    },
+    "GET /api/settings/ai": {
+      "method": "GET",
+      "path": "/api/settings/ai",
+      "summary": "获取 AI API 配置状态（不返回明文密钥）",
+      "public": false,
+      "tags": [
+        "settings"
+      ],
+      "response": {
+        "data": {
+          "provider": "openai-compatible",
+          "baseUrl": "https://api.openai.com/v1",
+          "model": "gpt-4o-mini",
+          "hasApiKey": false,
+          "maskedApiKey": "",
+          "updatedAt": "2026-08-15T03:00:00Z"
+        }
+      }
+    },
+    "PUT /api/settings/ai": {
+      "method": "PUT",
+      "path": "/api/settings/ai",
+      "summary": "保存用户自己的 AI API 配置",
+      "public": false,
+      "tags": [
+        "settings"
+      ],
+      "request_example": {
+        "provider": "openai-compatible",
+        "baseUrl": "https://api.openai.com/v1",
+        "model": "gpt-4o-mini",
+        "apiKey": ""
+      },
+      "response": {
+        "data": {
+          "provider": "openai-compatible",
+          "baseUrl": "https://api.openai.com/v1",
+          "model": "gpt-4o-mini",
+          "hasApiKey": true,
+          "maskedApiKey": "sk-…abcd",
+          "updatedAt": "2026-08-15T03:00:00Z"
+        }
+      },
+      "body_params": [
+        {
+          "name": "provider",
+          "type": "string",
+          "description": "供应商标识，默认 openai-compatible"
+        },
+        {
+          "name": "baseUrl",
+          "type": "string",
+          "required": true,
+          "description": "OpenAI 兼容 API Base URL，例如 https://api.openai.com/v1"
+        },
+        {
+          "name": "model",
+          "type": "string",
+          "required": true,
+          "description": "模型名称"
+        },
+        {
+          "name": "apiKey",
+          "type": "string",
+          "description": "用户自己的 API Key；为空则保留原 key"
+        },
+        {
+          "name": "clearApiKey",
+          "type": "boolean",
+          "description": "是否清除已保存 API Key"
         }
       ]
     }
