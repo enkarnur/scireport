@@ -1,60 +1,54 @@
 ---
 name: paper-vault-aime-app-cli
-description: 当 Agent 需要查看、调用或操作 「文研智库」 / 「Paper Vault」 / 「paper-vault」 这个 AIME 应用（app_id=app_cb75e3e2f3cf3421）的数据、后端接口或前端页面时使用；后端 API 操作不依赖页面连接，前端页面操作需要 page-control WebSocket 已连接
+description: 管理与研析文献库。当用户需要查询论文、回答文献问题、检索或定位批注、生成和查看文献报告时使用。
 ---
 
-# 示例应用 Skill
+# 文研智库 Agent 操作指南
 
-通过 CLI 操作本应用的后端 API 和前端页面。CLI 内部自动处理服务寻址与鉴权，不要手写 curl/fetch/localhost。
+通过 CLI 调用文研智库 Service。CLI 自动处理服务寻址、鉴权和写操作后的页面刷新；禁止使用 curl、裸 fetch、localhost 或页面点击替代业务 API。
 
-## 后端 API
+## 标准工作流
 
-```bash
-# 1. 查看全部接口（含参数、示例）
-python3 cli.py api routes
-
-# 2. 查看单个接口详情
-python3 cli.py api routes "POST /api/items"
-
-# 3. 调用接口
-python3 cli.py api call GET  /api/items
-python3 cli.py api call POST /api/items --body '{"title":"新任务"}'
-python3 cli.py api call PUT  /api/items/1 --body '{"status":"done"}'
-python3 cli.py api call DELETE /api/items/1
-python3 cli.py api call GET  /api/items --query 'limit=10&status=done'
-```
-
-`call` 是 `api call` 的顶层快捷别名：`cli.py call POST /api/items --body '{...}'`。
-
-路径参数：把 `{id}` 替换为真实值，例如 `/api/items/{id}` → `/api/items/1`。
-
-接口变更时：改 `app/api/api.yaml` → 跑 `python3 tools/gen_api.py <plugin-dir>` 刷新生成产物。不要手动扩展 CLI。
-
-## 前端 Page Control
-禁止在开发过程中如：功能迭代优化/bugfix等场景下使用。
-
-> **门禁（BLOCKING）**：除非用户明确要求使用控制应用前端页面，否则不得调用任何 `page` 命令。不要为了探测能力、展示控制条或验证开发结果而自行启用。
-
-用户明确授权后的标准流程：
+1. 先读 `references/api-routes.index.json` 定位接口。
+2. 需要确认参数时，在 `references/api-routes.details.json` 查看对应 `METHOD PATH`。
+3. 执行通用 CLI：
 
 ```bash
-python3 cli.py page wait --timeout 3
-python3 cli.py page control-start --zh "正在操作页面" --en "Operating"
-python3 cli.py page describe          # 查看可用 action
-python3 cli.py page state             # 页面状态快照
-python3 cli.py page action dom.click --args '{"selector":"[data-testid=\"save-button\"]"}'
-python3 cli.py page action nav.refresh
-python3 cli.py page control-end
+python3 skills/paper-vault-aime-app-cli/cli.py api call <METHOD> <PATH> [--body '<JSON对象>'] [--query 'k=v&k2=v2']
 ```
 
-- `page wait` 超时说明用户未打开页面，提示其在 AIME 中打开/刷新应用。
-- `page state` 和 `page describe` 分开执行，不要用 `&&` 合并。
-- 数据变更走 `api call`，不要通过点击页面按钮间接调接口。
-- `nav.refresh` 是软刷新（不断开 WebSocket），业务页需接入 `usePageControlRefresh` 才会更新数据。
+CLI 输出始终为 JSON。路径中的 `{paperId}`、`{annotationId}`、`{reportId}` 必须替换为真实 ID。
 
-## 约束
+## 代表性操作
 
-- 创建/更新/删除数据优先 `api call`，不通过页面按钮间接操作。
-- 该 skill 仅供 Agent 操作应用数据/页面，禁止在功能开发/bugfix 场景中使用。
-- 定位元素优先用稳定 `[data-testid="..."]`，不依赖 className 或 DOM 层级。
-- `/api/items` 只是脚手架演示，真实业务应替换 `app/api/api.yaml` 后重新生成。
+```bash
+# 检索文献库
+python3 skills/paper-vault-aime-app-cli/cli.py api call GET /api/papers --query 'query=检索增强&limit=20'
+
+# 获取单篇论文的结构化研析与页级文本
+python3 skills/paper-vault-aime-app-cli/cli.py api call GET /api/papers/<paperId>
+
+# 基于全部就绪论文和批注回答问题
+python3 skills/paper-vault-aime-app-cli/cli.py api call POST /api/qa/ask --body '{"question":"这些论文的主要方法是什么？","includeAnnotations":true}'
+
+# 检索并定位批注
+python3 skills/paper-vault-aime-app-cli/cli.py api call GET /api/annotations --query 'keyword=基线&paperId=<paperId>'
+
+# 生成系统综述报告
+python3 skills/paper-vault-aime-app-cli/cli.py api call POST /api/reports --body '{"title":"研究综述","template":"systematic-review","paperIds":["<paperId>"],"researchQuestion":"核心研究问题","language":"zh-CN"}'
+
+# 查看报告详情与引用线索
+python3 skills/paper-vault-aime-app-cli/cli.py api call GET /api/reports/<reportId>
+```
+
+## 回答与定位要求
+
+- 问答优先调用 `POST /api/qa/ask`，保留并向用户展示返回的 `citations`，不要编造论文结论或页码。
+- 定位批注时展示论文标题、页码、章节和 quote；需要完整上下文时再读取论文详情。
+- 报告生成后返回报告 ID 和状态；可引导用户打开 `/reports/<reportId>`。论文详情使用 `/papers/<paperId>`，文献库与问答入口分别为 `/library`、`/ask`。
+- 创建、更新、删除、问答和报告生成必须经生成客户端/通用 CLI；其写操作会自动 `notify_refresh`，不要重复通知。
+- PDF 原文件只在用户浏览器本地处理；不要索取、保存或输出 GitHub Token 或任何凭据。
+
+## Page Control 边界
+
+只有用户明确要求操控已打开的前端页面时，才可使用 `python3 skills/paper-vault-aime-app-cli/cli.py page ...`。日常查询和数据变更一律使用 `api call`，开发、调试或验证阶段不得调用 Page Control。

@@ -3,79 +3,390 @@
   "template_version": "0.0.1",
   "generated_at": "",
   "source": "idl-gen",
-  "route_count": 5,
+  "route_count": 14,
   "routes": [
     {
       "method": "GET",
-      "path": "/api/items",
-      "summary": "列出所有项目",
+      "path": "/api/annotations",
+      "summary": "按论文、关键词或页码检索批注",
       "tags": [
-        "items"
+        "annotations"
       ],
       "response": {
-        "data": [],
-        "total": 0,
-        "backend": "json"
+        "data": [
+          {
+            "id": "ann_01",
+            "paperId": "paper_01",
+            "paperTitle": "面向文献研析的检索增强方法",
+            "content": "该方法与基线设计相关",
+            "pageNumber": 4,
+            "section": "方法",
+            "quote": "我们提出一种两阶段检索方法",
+            "startOffset": 1200,
+            "endOffset": 1215,
+            "color": "yellow",
+            "createdAt": "2026-08-15T02:10:00Z",
+            "updatedAt": "2026-08-15T02:10:00Z"
+          }
+        ],
+        "total": 1,
+        "limit": 50,
+        "offset": 0
       }
     },
     {
       "method": "POST",
-      "path": "/api/items",
-      "summary": "创建项目",
+      "path": "/api/annotations",
+      "summary": "为论文创建可定位批注",
       "tags": [
-        "items"
+        "annotations"
       ],
       "response": {
         "data": {
-          "id": "1",
-          "title": "示例任务",
-          "status": "todo"
-        },
-        "backend": "json"
+          "id": "ann_01",
+          "paperId": "paper_01",
+          "content": "该方法与基线设计相关",
+          "pageNumber": 4,
+          "section": "方法",
+          "quote": "我们提出一种两阶段检索方法",
+          "startOffset": 1200,
+          "endOffset": 1215,
+          "color": "yellow",
+          "createdAt": "2026-08-15T02:10:00Z",
+          "updatedAt": "2026-08-15T02:10:00Z"
+        }
       }
     },
     {
       "method": "DELETE",
-      "path": "/api/items/{id}",
-      "summary": "删除项目",
+      "path": "/api/annotations/{annotationId}",
+      "summary": "删除批注",
       "tags": [
-        "items"
+        "annotations"
       ],
       "response": {
         "success": true,
-        "backend": "json"
+        "deletedAnnotationId": "ann_01"
       }
     },
     {
       "method": "GET",
-      "path": "/api/items/{id}",
-      "summary": "获取单个项目",
+      "path": "/api/annotations/{annotationId}",
+      "summary": "获取单条批注及论文定位信息",
       "tags": [
-        "items"
+        "annotations"
       ],
       "response": {
         "data": {
-          "id": "1",
-          "title": "示例任务",
-          "status": "todo"
-        },
-        "backend": "json"
+          "id": "ann_01",
+          "paperId": "paper_01",
+          "paperTitle": "面向文献研析的检索增强方法",
+          "content": "该方法与基线设计相关",
+          "pageNumber": 4,
+          "section": "方法",
+          "quote": "我们提出一种两阶段检索方法",
+          "startOffset": 1200,
+          "endOffset": 1215,
+          "color": "yellow",
+          "createdAt": "2026-08-15T02:10:00Z",
+          "updatedAt": "2026-08-15T02:10:00Z"
+        }
       }
     },
     {
       "method": "PUT",
-      "path": "/api/items/{id}",
-      "summary": "更新项目（字段可选）",
+      "path": "/api/annotations/{annotationId}",
+      "summary": "更新批注内容与定位信息",
       "tags": [
-        "items"
+        "annotations"
       ],
       "response": {
         "data": {
-          "id": "1",
-          "title": "新标题",
-          "status": "done"
-        },
-        "backend": "json"
+          "id": "ann_01",
+          "paperId": "paper_01",
+          "content": "更新后的批注",
+          "pageNumber": 4,
+          "section": "方法",
+          "quote": "我们提出一种两阶段检索方法",
+          "startOffset": 1200,
+          "endOffset": 1215,
+          "color": "blue",
+          "createdAt": "2026-08-15T02:10:00Z",
+          "updatedAt": "2026-08-15T02:12:00Z"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/papers",
+      "summary": "检索并分页列出文献库论文",
+      "tags": [
+        "papers"
+      ],
+      "response": {
+        "data": [
+          {
+            "id": "paper_01",
+            "title": "面向文献研析的检索增强方法",
+            "authors": [
+              "张三",
+              "李四"
+            ],
+            "year": 2026,
+            "venue": "示例期刊",
+            "doi": "10.0000/example",
+            "abstract": "论文摘要",
+            "background": "研究背景概述",
+            "methods": "研究方法概述",
+            "results": "研究结果概述",
+            "discussion": "讨论概述",
+            "processingStatus": "ready",
+            "pageCount": 12,
+            "sourceFileName": "example.pdf",
+            "createdAt": "2026-08-15T02:00:00Z",
+            "updatedAt": "2026-08-15T02:01:00Z"
+          }
+        ],
+        "total": 1,
+        "limit": 20,
+        "offset": 0
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/papers",
+      "summary": "将浏览器本地提取的 PDF 文本与元数据入库并启动结构化研析",
+      "tags": [
+        "papers"
+      ],
+      "response": {
+        "data": {
+          "id": "paper_01",
+          "title": "面向文献研析的检索增强方法",
+          "authors": [
+            "张三",
+            "李四"
+          ],
+          "year": 2026,
+          "venue": "示例期刊",
+          "doi": "10.0000/example",
+          "abstract": "",
+          "background": "",
+          "methods": "",
+          "results": "",
+          "discussion": "",
+          "processingStatus": "processing",
+          "processingError": "",
+          "pageCount": 2,
+          "sourceFileName": "example.pdf",
+          "createdAt": "2026-08-15T02:00:00Z",
+          "updatedAt": "2026-08-15T02:00:00Z"
+        }
+      }
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/papers/{paperId}",
+      "summary": "删除论文及其关联批注",
+      "tags": [
+        "papers"
+      ],
+      "response": {
+        "success": true,
+        "deletedPaperId": "paper_01"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/papers/{paperId}",
+      "summary": "获取论文详情、结构化研析内容与页级定位文本",
+      "tags": [
+        "papers"
+      ],
+      "response": {
+        "data": {
+          "id": "paper_01",
+          "title": "面向文献研析的检索增强方法",
+          "authors": [
+            "张三",
+            "李四"
+          ],
+          "year": 2026,
+          "venue": "示例期刊",
+          "doi": "10.0000/example",
+          "abstract": "论文摘要",
+          "background": "研究背景概述",
+          "methods": "研究方法概述",
+          "results": "研究结果概述",
+          "discussion": "讨论概述",
+          "processingStatus": "ready",
+          "processingError": "",
+          "pageCount": 2,
+          "sourceFileName": "example.pdf",
+          "fullText": "第一页文本\n第二页文本",
+          "pages": [
+            {
+              "pageNumber": 1,
+              "text": "第一页文本"
+            },
+            {
+              "pageNumber": 2,
+              "text": "第二页文本"
+            }
+          ],
+          "createdAt": "2026-08-15T02:00:00Z",
+          "updatedAt": "2026-08-15T02:01:00Z"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/qa/ask",
+      "summary": "在全部或指定论文范围内问答并返回可核验定位线索",
+      "tags": [
+        "qa"
+      ],
+      "response": {
+        "data": {
+          "id": "qa_01",
+          "question": "这些论文采用了哪些检索增强方法？",
+          "answer": "论文采用两阶段检索，并通过重排序提高证据相关性。",
+          "scope": {
+            "paperIds": [
+              "paper_01"
+            ],
+            "includeAnnotations": true
+          },
+          "hits": [
+            {
+              "paperId": "paper_01",
+              "paperTitle": "面向文献研析的检索增强方法",
+              "score": 0.93
+            }
+          ],
+          "citations": [
+            {
+              "paperId": "paper_01",
+              "paperTitle": "面向文献研析的检索增强方法",
+              "pageNumber": 4,
+              "section": "方法",
+              "quote": "我们提出一种两阶段检索方法",
+              "startOffset": 1200,
+              "endOffset": 1215
+            }
+          ],
+          "createdAt": "2026-08-15T02:20:00Z"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/reports",
+      "summary": "分页查询系统文献汇报记录",
+      "tags": [
+        "reports"
+      ],
+      "response": {
+        "data": [
+          {
+            "id": "report_01",
+            "title": "检索增强研究系统综述",
+            "template": "systematic-review",
+            "status": "ready",
+            "paperIds": [
+              "paper_01"
+            ],
+            "paperCount": 1,
+            "createdAt": "2026-08-15T02:30:00Z",
+            "updatedAt": "2026-08-15T02:31:00Z"
+          }
+        ],
+        "total": 1,
+        "limit": 20,
+        "offset": 0
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/reports",
+      "summary": "按模板和论文范围生成系统文献汇报",
+      "tags": [
+        "reports"
+      ],
+      "response": {
+        "data": {
+          "id": "report_01",
+          "title": "检索增强研究系统综述",
+          "template": "systematic-review",
+          "status": "generating",
+          "paperIds": [
+            "paper_01"
+          ],
+          "researchQuestion": "检索增强方法如何改善文献问答？",
+          "language": "zh-CN",
+          "createdAt": "2026-08-15T02:30:00Z",
+          "updatedAt": "2026-08-15T02:30:00Z"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/reports/{reportId}",
+      "summary": "获取报告生成状态、模板化章节与引用线索",
+      "tags": [
+        "reports"
+      ],
+      "response": {
+        "data": {
+          "id": "report_01",
+          "title": "检索增强研究系统综述",
+          "template": "systematic-review",
+          "status": "ready",
+          "error": "",
+          "paperIds": [
+            "paper_01"
+          ],
+          "researchQuestion": "检索增强方法如何改善文献问答？",
+          "language": "zh-CN",
+          "sections": [
+            {
+              "key": "abstract",
+              "title": "摘要",
+              "content": "本报告系统梳理了检索增强研究。",
+              "citations": [
+                {
+                  "paperId": "paper_01",
+                  "paperTitle": "面向文献研析的检索增强方法",
+                  "pageNumber": 4,
+                  "section": "方法",
+                  "quote": "我们提出一种两阶段检索方法",
+                  "startOffset": 1200,
+                  "endOffset": 1215
+                }
+              ]
+            }
+          ],
+          "createdAt": "2026-08-15T02:30:00Z",
+          "updatedAt": "2026-08-15T02:31:00Z"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/reports/{reportId}/export",
+      "summary": "将已完成报告导出为 Word DOCX",
+      "tags": [
+        "reports"
+      ],
+      "response": {
+        "data": {
+          "reportId": "report_01",
+          "fileName": "检索增强研究系统综述.docx",
+          "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "encoding": "base64",
+          "contentBase64": "UEsDBBQAAAAI...",
+          "generatedAt": "2026-08-15T02:35:00Z"
+        }
       }
     }
   ]

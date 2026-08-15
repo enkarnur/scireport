@@ -41,12 +41,12 @@
   ],
   "commands": [
     {
-      "name": "example",
-      "description": "paper-vault 命令",
-      "description_en": "paper-vault command",
+      "name": "papers",
+      "description": "查询文献、知识库问答与生成文献报告",
+      "description_en": "Search papers, ask the library, and generate literature reports",
       "type": "script",
-      "script": "commands/example.py",
-      "timeout": 10
+      "script": "commands/papers.py",
+      "timeout": 120
     }
   ]
 }

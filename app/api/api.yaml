@@ -1,84 +1,415 @@
-# AIME App 接口协议（IDL）— 唯一真相源
-#
-# 这是本应用「先写协议、再并行开发」的核心文件。写完本文件后运行：
-#
-#   python3 tools/gen_api.py <plugin-dir>
-#
-# 生成器会秒级产出四端产物（无需 go build / 重启服务）：
-#   1. app/server-go/handler_<resource>.gen.go   —— Register(Route{...}) 注册（勿改）
-#   2. app/server-go/handler_<resource>.go        —— handler 函数体 stub（Agent B 在此填业务逻辑）
-#   3. app/frontend/src/api/client.gen.ts         —— 前端 typed client（Agent A 直接 import 调用）
-#   4. skills/<skill>/api_client.gen.py           —— command/hook 的 typed 封装（Agent C 用）
-#   5. skills/<skill>/references/api-routes.*.json —— CLI/Skill 渐进式引用
-#      （服务启动会在其中补充模板内置路由；不必把这些内置路由写回本 IDL）
-#
-# 之后 Agent A/B/C 可完全并行、互不阻塞。
-#
-# ── 注意 ──────────────────────────────────────────────────────────────
-# /api/me、/api/_meta/* 是框架内置路由（handler_me.go / handler_meta.go），
-# 不在本 IDL 管理范围内，也不会生成 typed client。前端已在 auth.ts 内部消费。
-#
-# ── 字段说明 ────────────────────────────────────────────────────────────
-# resources[].name         资源名（kebab/snake 皆可），决定生成文件名与 client 分组
-# resources[].model        可选：资源数据形状，用于生成 TS 类型与 Go model 参考
-# routes[].method          GET/POST/PUT/DELETE/PATCH
-# routes[].path            Go 1.22+ ServeMux 模式，路径参数写 {id}
-# routes[].summary         一句话意图（必填）
-# routes[].public          可选，默认 false（走 JWT 鉴权）；仅健康检查等设 true
-# routes[].tags            可选分组
-# routes[].query           query 参数：{name: {type, required, description}}
-# routes[].body            body 参数：同上
-# routes[].request_example  给 Agent / CLI 可照抄的请求示例
-# routes[].response         响应契约（生成 TS 响应类型 & typed client 默认泛型的唯一来源）
-
+# 文研智库接口协议（IDL）— 论文原文由浏览器本地提取后提交
+# /api/me 与 /api/_meta/* 为框架内置路由，不在本文件声明。
 version: "1"
 
 resources:
-  - name: items
+  - name: papers
     model:
       id: string
       title: string
-      description: string
-      status: string
+      authors: array
+      year: number
+      venue: string
+      doi: string
+      abstract: string
+      background: string
+      methods: string
+      results: string
+      discussion: string
+      processingStatus: string
+      pageCount: number
+      sourceFileName: string
       createdAt: string
       updatedAt: string
     routes:
       - method: GET
-        path: /api/items
-        summary: 列出所有项目
-        tags: [items]
-        response: { data: [], total: 0, backend: json }
+        path: /api/papers
+        summary: 检索并分页列出文献库论文
+        tags: [papers]
+        query:
+          q: { type: string, description: "可选，匹配标题、作者、摘要或全文" }
+          status: { type: string, description: "可选，按 processing/ready/failed 筛选" }
+          limit: { type: number, description: "每页数量，默认 20，最大 100" }
+          offset: { type: number, description: "分页偏移，默认 0" }
+        response:
+          data:
+            - id: "paper_01"
+              title: "面向文献研析的检索增强方法"
+              authors: ["张三", "李四"]
+              year: 2026
+              venue: "示例期刊"
+              doi: "10.0000/example"
+              abstract: "论文摘要"
+              background: "研究背景概述"
+              methods: "研究方法概述"
+              results: "研究结果概述"
+              discussion: "讨论概述"
+              processingStatus: "ready"
+              pageCount: 12
+              sourceFileName: "example.pdf"
+              createdAt: "2026-08-15T02:00:00Z"
+              updatedAt: "2026-08-15T02:01:00Z"
+          total: 1
+          limit: 20
+          offset: 0
 
       - method: POST
-        path: /api/items
-        summary: 创建项目
-        tags: [items]
+        path: /api/papers
+        summary: 将浏览器本地提取的 PDF 文本与元数据入库并启动结构化研析
+        tags: [papers]
         body:
-          title:       { type: string, required: true, description: "项目标题，不能为空" }
-          description: { type: string, description: "项目描述，可选" }
-          status:      { type: string, description: "项目状态，例如 todo/done" }
-        request_example:  { title: "示例任务", description: "补充说明（可选）", status: "todo" }
-        response: { data: { id: "1", title: "示例任务", status: "todo" }, backend: json }
+          title: { type: string, required: true, description: "论文标题" }
+          authors: { type: array, required: true, description: "作者姓名字符串数组，可为空数组" }
+          year: { type: number, description: "发表年份" }
+          venue: { type: string, description: "期刊、会议或来源" }
+          doi: { type: string, description: "DOI，可选" }
+          sourceFileName: { type: string, required: true, description: "仅保存原 PDF 文件名，不保存本地绝对路径" }
+          pageCount: { type: number, required: true, description: "PDF 总页数" }
+          fullText: { type: string, required: true, description: "浏览器从 PDF 提取的全文，不包含 PDF 二进制" }
+          pages: { type: array, required: true, description: "页级文本对象数组，每项含 pageNumber 与 text，用于定位" }
+        request_example:
+          title: "面向文献研析的检索增强方法"
+          authors: ["张三", "李四"]
+          year: 2026
+          venue: "示例期刊"
+          doi: "10.0000/example"
+          sourceFileName: "example.pdf"
+          pageCount: 2
+          fullText: "第一页文本\n第二页文本"
+          pages:
+            - { pageNumber: 1, text: "第一页文本" }
+            - { pageNumber: 2, text: "第二页文本" }
+        response:
+          data:
+            id: "paper_01"
+            title: "面向文献研析的检索增强方法"
+            authors: ["张三", "李四"]
+            year: 2026
+            venue: "示例期刊"
+            doi: "10.0000/example"
+            abstract: ""
+            background: ""
+            methods: ""
+            results: ""
+            discussion: ""
+            processingStatus: "processing"
+            processingError: ""
+            pageCount: 2
+            sourceFileName: "example.pdf"
+            createdAt: "2026-08-15T02:00:00Z"
+            updatedAt: "2026-08-15T02:00:00Z"
 
       - method: GET
-        path: /api/items/{id}
-        summary: 获取单个项目
-        tags: [items]
-        response: { data: { id: "1", title: "示例任务", status: "todo" }, backend: json }
-
-      - method: PUT
-        path: /api/items/{id}
-        summary: 更新项目（字段可选）
-        tags: [items]
-        body:
-          title:       { type: string, description: "新项目标题，可选" }
-          description: { type: string, description: "新项目描述，可选" }
-          status:      { type: string, description: "新项目状态，可选，例如 todo/done" }
-        request_example: { title: "新标题", status: "done" }
-        response: { data: { id: "1", title: "新标题", status: "done" }, backend: json }
+        path: /api/papers/{paperId}
+        summary: 获取论文详情、结构化研析内容与页级定位文本
+        tags: [papers]
+        response:
+          data:
+            id: "paper_01"
+            title: "面向文献研析的检索增强方法"
+            authors: ["张三", "李四"]
+            year: 2026
+            venue: "示例期刊"
+            doi: "10.0000/example"
+            abstract: "论文摘要"
+            background: "研究背景概述"
+            methods: "研究方法概述"
+            results: "研究结果概述"
+            discussion: "讨论概述"
+            processingStatus: "ready"
+            processingError: ""
+            pageCount: 2
+            sourceFileName: "example.pdf"
+            fullText: "第一页文本\n第二页文本"
+            pages:
+              - { pageNumber: 1, text: "第一页文本" }
+              - { pageNumber: 2, text: "第二页文本" }
+            createdAt: "2026-08-15T02:00:00Z"
+            updatedAt: "2026-08-15T02:01:00Z"
 
       - method: DELETE
-        path: /api/items/{id}
-        summary: 删除项目
-        tags: [items]
-        response: { success: true, backend: json }
+        path: /api/papers/{paperId}
+        summary: 删除论文及其关联批注
+        tags: [papers]
+        response:
+          success: true
+          deletedPaperId: "paper_01"
+
+  - name: annotations
+    model:
+      id: string
+      paperId: string
+      content: string
+      pageNumber: number
+      section: string
+      quote: string
+      startOffset: number
+      endOffset: number
+      color: string
+      createdAt: string
+      updatedAt: string
+    routes:
+      - method: GET
+        path: /api/annotations
+        summary: 按论文、关键词或页码检索批注
+        tags: [annotations]
+        query:
+          paperId: { type: string, description: "可选，限定论文 ID" }
+          q: { type: string, description: "可选，匹配批注内容、章节或引用片段" }
+          pageNumber: { type: number, description: "可选，限定 PDF 页码，从 1 开始" }
+          limit: { type: number, description: "每页数量，默认 50，最大 200" }
+          offset: { type: number, description: "分页偏移，默认 0" }
+        response:
+          data:
+            - id: "ann_01"
+              paperId: "paper_01"
+              paperTitle: "面向文献研析的检索增强方法"
+              content: "该方法与基线设计相关"
+              pageNumber: 4
+              section: "方法"
+              quote: "我们提出一种两阶段检索方法"
+              startOffset: 1200
+              endOffset: 1215
+              color: "yellow"
+              createdAt: "2026-08-15T02:10:00Z"
+              updatedAt: "2026-08-15T02:10:00Z"
+          total: 1
+          limit: 50
+          offset: 0
+
+      - method: POST
+        path: /api/annotations
+        summary: 为论文创建可定位批注
+        tags: [annotations]
+        body:
+          paperId: { type: string, required: true, description: "关联论文 ID" }
+          content: { type: string, required: true, description: "批注正文" }
+          pageNumber: { type: number, required: true, description: "PDF 页码，从 1 开始" }
+          section: { type: string, description: "章节名，可选" }
+          quote: { type: string, description: "用于快速定位的原文短片段" }
+          startOffset: { type: number, description: "提取全文中的起始字符偏移" }
+          endOffset: { type: number, description: "提取全文中的结束字符偏移" }
+          color: { type: string, description: "标记颜色语义，默认 yellow" }
+        request_example:
+          paperId: "paper_01"
+          content: "该方法与基线设计相关"
+          pageNumber: 4
+          section: "方法"
+          quote: "我们提出一种两阶段检索方法"
+          startOffset: 1200
+          endOffset: 1215
+          color: "yellow"
+        response:
+          data:
+            id: "ann_01"
+            paperId: "paper_01"
+            content: "该方法与基线设计相关"
+            pageNumber: 4
+            section: "方法"
+            quote: "我们提出一种两阶段检索方法"
+            startOffset: 1200
+            endOffset: 1215
+            color: "yellow"
+            createdAt: "2026-08-15T02:10:00Z"
+            updatedAt: "2026-08-15T02:10:00Z"
+
+      - method: GET
+        path: /api/annotations/{annotationId}
+        summary: 获取单条批注及论文定位信息
+        tags: [annotations]
+        response:
+          data:
+            id: "ann_01"
+            paperId: "paper_01"
+            paperTitle: "面向文献研析的检索增强方法"
+            content: "该方法与基线设计相关"
+            pageNumber: 4
+            section: "方法"
+            quote: "我们提出一种两阶段检索方法"
+            startOffset: 1200
+            endOffset: 1215
+            color: "yellow"
+            createdAt: "2026-08-15T02:10:00Z"
+            updatedAt: "2026-08-15T02:10:00Z"
+
+      - method: PUT
+        path: /api/annotations/{annotationId}
+        summary: 更新批注内容与定位信息
+        tags: [annotations]
+        body:
+          content: { type: string, description: "新的批注正文" }
+          pageNumber: { type: number, description: "新的 PDF 页码" }
+          section: { type: string, description: "新的章节名" }
+          quote: { type: string, description: "新的原文定位片段" }
+          startOffset: { type: number, description: "新的起始字符偏移" }
+          endOffset: { type: number, description: "新的结束字符偏移" }
+          color: { type: string, description: "新的标记颜色语义" }
+        request_example: { content: "更新后的批注", color: "blue" }
+        response:
+          data:
+            id: "ann_01"
+            paperId: "paper_01"
+            content: "更新后的批注"
+            pageNumber: 4
+            section: "方法"
+            quote: "我们提出一种两阶段检索方法"
+            startOffset: 1200
+            endOffset: 1215
+            color: "blue"
+            createdAt: "2026-08-15T02:10:00Z"
+            updatedAt: "2026-08-15T02:12:00Z"
+
+      - method: DELETE
+        path: /api/annotations/{annotationId}
+        summary: 删除批注
+        tags: [annotations]
+        response:
+          success: true
+          deletedAnnotationId: "ann_01"
+
+  - name: qa
+    model:
+      id: string
+      question: string
+      answer: string
+      paperIds: array
+      createdAt: string
+    routes:
+      - method: POST
+        path: /api/qa/ask
+        summary: 在全部或指定论文范围内问答并返回可核验定位线索
+        tags: [qa]
+        body:
+          question: { type: string, required: true, description: "用户问题" }
+          paperIds: { type: array, description: "可选论文 ID 数组；省略或空数组表示全部就绪论文" }
+          includeAnnotations: { type: boolean, description: "是否将相关批注纳入上下文，默认 true" }
+        request_example:
+          question: "这些论文采用了哪些检索增强方法？"
+          paperIds: ["paper_01"]
+          includeAnnotations: true
+        response:
+          data:
+            id: "qa_01"
+            question: "这些论文采用了哪些检索增强方法？"
+            answer: "论文采用两阶段检索，并通过重排序提高证据相关性。"
+            scope:
+              paperIds: ["paper_01"]
+              includeAnnotations: true
+            hits:
+              - paperId: "paper_01"
+                paperTitle: "面向文献研析的检索增强方法"
+                score: 0.93
+            citations:
+              - paperId: "paper_01"
+                paperTitle: "面向文献研析的检索增强方法"
+                pageNumber: 4
+                section: "方法"
+                quote: "我们提出一种两阶段检索方法"
+                startOffset: 1200
+                endOffset: 1215
+            createdAt: "2026-08-15T02:20:00Z"
+
+  - name: reports
+    model:
+      id: string
+      title: string
+      template: string
+      status: string
+      paperIds: array
+      createdAt: string
+      updatedAt: string
+    routes:
+      - method: GET
+        path: /api/reports
+        summary: 分页查询系统文献汇报记录
+        tags: [reports]
+        query:
+          status: { type: string, description: "可选，按 generating/ready/failed 筛选" }
+          limit: { type: number, description: "每页数量，默认 20，最大 100" }
+          offset: { type: number, description: "分页偏移，默认 0" }
+        response:
+          data:
+            - id: "report_01"
+              title: "检索增强研究系统综述"
+              template: "systematic-review"
+              status: "ready"
+              paperIds: ["paper_01"]
+              paperCount: 1
+              createdAt: "2026-08-15T02:30:00Z"
+              updatedAt: "2026-08-15T02:31:00Z"
+          total: 1
+          limit: 20
+          offset: 0
+
+      - method: POST
+        path: /api/reports
+        summary: 按模板和论文范围生成系统文献汇报
+        tags: [reports]
+        body:
+          title: { type: string, required: true, description: "报告标题" }
+          template: { type: string, required: true, description: "模板标识：systematic-review/comparison/evidence-summary" }
+          paperIds: { type: array, required: true, description: "参与报告生成的论文 ID 数组，不能为空" }
+          researchQuestion: { type: string, description: "可选，报告聚焦的研究问题" }
+          language: { type: string, description: "报告语言，默认 zh-CN" }
+        request_example:
+          title: "检索增强研究系统综述"
+          template: "systematic-review"
+          paperIds: ["paper_01"]
+          researchQuestion: "检索增强方法如何改善文献问答？"
+          language: "zh-CN"
+        response:
+          data:
+            id: "report_01"
+            title: "检索增强研究系统综述"
+            template: "systematic-review"
+            status: "generating"
+            paperIds: ["paper_01"]
+            researchQuestion: "检索增强方法如何改善文献问答？"
+            language: "zh-CN"
+            createdAt: "2026-08-15T02:30:00Z"
+            updatedAt: "2026-08-15T02:30:00Z"
+
+      - method: GET
+        path: /api/reports/{reportId}
+        summary: 获取报告生成状态、模板化章节与引用线索
+        tags: [reports]
+        response:
+          data:
+            id: "report_01"
+            title: "检索增强研究系统综述"
+            template: "systematic-review"
+            status: "ready"
+            error: ""
+            paperIds: ["paper_01"]
+            researchQuestion: "检索增强方法如何改善文献问答？"
+            language: "zh-CN"
+            sections:
+              - key: "abstract"
+                title: "摘要"
+                content: "本报告系统梳理了检索增强研究。"
+                citations:
+                  - paperId: "paper_01"
+                    paperTitle: "面向文献研析的检索增强方法"
+                    pageNumber: 4
+                    section: "方法"
+                    quote: "我们提出一种两阶段检索方法"
+                    startOffset: 1200
+                    endOffset: 1215
+            createdAt: "2026-08-15T02:30:00Z"
+            updatedAt: "2026-08-15T02:31:00Z"
+
+      - method: POST
+        path: /api/reports/{reportId}/export
+        summary: 将已完成报告导出为 Word DOCX
+        tags: [reports]
+        body:
+          fileName: { type: string, description: "可选下载文件名，不含本地路径" }
+        request_example: { fileName: "检索增强研究系统综述.docx" }
+        response:
+          data:
+            reportId: "report_01"
+            fileName: "检索增强研究系统综述.docx"
+            mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            encoding: "base64"
+            contentBase64: "UEsDBBQAAAAI..."
+            generatedAt: "2026-08-15T02:35:00Z"
