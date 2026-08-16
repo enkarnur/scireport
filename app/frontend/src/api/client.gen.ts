@@ -95,7 +95,7 @@ async function request<T>(method: string, path: string, body?: unknown, query?: 
     method,
     ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
   });
-  if (!res.ok) throw new Error(`${method} ${path} failed: HTTP ${res.status}`);
+  if (!res.ok) { const errText = await res.text().catch(() => ''); let detail = errText; try { detail = JSON.parse(errText).error || errText; } catch {} throw new Error(`${method} ${path} failed: HTTP ${res.status}${detail ? ` - ${detail}` : ''}`); };
   const text = await res.text();
   return (text ? JSON.parse(text) : {}) as T;
 }

@@ -6,14 +6,14 @@ import (
 	"testing"
 )
 
-func TestPaperCreateRequiresUserAIKey(t *testing.T) {
+func TestPaperCreateFallsBackWithoutUserAIKey(t *testing.T) {
 	useTestSQLite(t)
 	payload := `{"title":"No Key Paper","authors":["A"],"year":2026,"sourceFileName":"paper.pdf","pageCount":1,"fullText":"Abstract\nThis paper studies AI.","pages":[{"pageNumber":1,"text":"Abstract\nThis paper studies AI."}]}`
 	req := httptest.NewRequest("POST", "/api/papers", strings.NewReader(payload))
 	rec := httptest.NewRecorder()
 	papersCreate(rec, req)
-	if rec.Code != 400 || !strings.Contains(rec.Body.String(), "AI API Key") {
-		t.Fatalf("expected missing AI key error, status=%d body=%s", rec.Code, rec.Body.String())
+	if rec.Code != 201 || !strings.Contains(rec.Body.String(), "本地解析兜底") {
+		t.Fatalf("expected successful local fallback import, status=%d body=%s", rec.Code, rec.Body.String())
 	}
 }
 
